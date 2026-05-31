@@ -1,0 +1,64 @@
+{
+  "base_url": "https://phongvu.vn",
+  "pages": {
+    "laptop": "https://phongvu.vn/c/laptop",
+    "monitor": "https://phongvu.vn/c/man-hinh-may-tinh"
+  },
+  "test_data": {
+    "brand_to_filter": "Apple",
+    "search_keyword": "Logitech",
+    "search_variants": [
+      "logitech",
+      "Logitech",
+      "  Logitech  ",
+      "Logitech!@#",
+      "nonexistentsku12345"
+    ],
+    "sort_option": "Giá tăng dần",
+    "sort_option_candidates": [
+      "Giá thấp đến cao",
+      "Giá tăng dần"
+    ],
+    "sort_options": {
+      "price_asc": "Giá tăng dần",
+      "price_desc": "Giá giảm dần",
+      "promo_best": "Khuyến mãi tốt nhất",
+      "best_selling": "Sản phẩm bán chạy nhất",
+      "newest": "Sản phẩm mới nhất"
+    },
+    "brand_match_keywords": {
+      "Apple": [
+        "apple",
+        "macbook"
+      ]
+    }
+  },
+  "selectors": {
+    "search_input": [
+      "input[aria-label='Search']",
+      "input[placeholder*='Tìm']",
+      "input[type='search']",
+      "input[name*='search']"
+    ],
+    "product_name": [
+      "div.att-product-card-title",
+      "[class*='att-product-card-title']",
+      "[class*='product-card-title']",
+      "[class*='product'] h3"
+    ],
+    "latest_price": [
+      "[class*='att-product-detail-latest-price']"
+    ],
+    "results_container": [
+      "div[class*='teko-row']",
+      "div.css-rf24tk",
+      "div.css-1y2krk0",
+      "div.css-qc5ueq",
+      "section.listing",
+      "div.product-listing",
+      "div[class*='product-grid']",
+      "div[id*='search-results']",
+      "div[class*='search-results']"
+    ]
+  }
+}

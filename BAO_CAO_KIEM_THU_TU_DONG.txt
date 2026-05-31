@@ -1,0 +1,399 @@
+BÁO CÁO KIỂM THỬ TỰ ĐỘNG
+Dự án: Phong Vu Selenium Test Framework
+Ngày lập/cập nhật: 25/05/2026
+Website kiểm thử: https://phongvu.vn
+
+============================================================
+CHƯƠNG 1: LÝ THUYẾT VÀ GIỚI THIỆU WEB KIỂM THỬ
+============================================================
+
+1.1. Tổng quan về kiểm thử tự động
+
+Kiểm thử tự động là quá trình sử dụng công cụ, mã lệnh và framework để tự động thực hiện các bước kiểm thử thay cho thao tác thủ công. Với ứng dụng web, kiểm thử tự động thường mở trình duyệt, điều hướng đến trang cần kiểm thử, thao tác với giao diện và so sánh kết quả thực tế với kết quả mong đợi.
+
+Lợi ích chính:
+- Giảm thời gian lặp lại các testcase.
+- Tăng độ ổn định khi chạy lại bộ kiểm thử nhiều lần.
+- Hỗ trợ phát hiện lỗi hồi quy sau khi website thay đổi.
+- Tự động tạo báo cáo, log, screenshot và artifact khi testcase lỗi.
+
+Hạn chế:
+- Cần thời gian xây dựng framework và bảo trì selector.
+- Website live có thể thay đổi dữ liệu, giao diện, tồn kho hoặc tốc độ phản hồi.
+- Test chạy trên website thật có thể bị ảnh hưởng bởi mạng, quảng cáo, cache hoặc cơ chế chống bot.
+
+1.2. Các mức kiểm thử trong dự án
+
+Dự án sử dụng Selenium WebDriver kết hợp pytest để kiểm thử các luồng chính của website Phong Vũ:
+- Smoke test: kiểm tra nhanh các chức năng cốt lõi.
+- Regression test: kiểm tra hồi quy với nhiều tình huống kết hợp.
+- Slow test: các test có thời gian chạy dài hơn.
+- Security UI test: kiểm tra payload XSS/SQL-like ở mức giao diện, không kiểm thử bảo mật chuyên sâu.
+- Destructive/Stress test: kiểm tra khả năng chịu input bất thường như chuỗi tìm kiếm cực dài.
+- Framework test: kiểm tra helper, fixture và cơ chế xử lý lỗi của framework.
+
+1.3. Giới thiệu website kiểm thử
+
+Website được kiểm thử: https://phongvu.vn
+
+Đây là project học tập/kiểm thử độc lập, không phải bộ kiểm thử chính thức của Phong Vũ. Các testcase security payload và destructive chỉ nên chạy khi có quyền hoặc trong môi trường phù hợp.
+
+Phạm vi website được kiểm thử:
+- Trang chủ: https://phongvu.vn
+- Trang laptop: https://phongvu.vn/c/laptop
+- Trang màn hình máy tính: https://phongvu.vn/c/man-hinh-may-tinh
+
+1.4. Phạm vi chức năng kiểm thử
+
+Các chức năng chính:
+- Tìm kiếm sản phẩm theo từ khóa.
+- Lọc sản phẩm theo thương hiệu.
+- Sắp xếp sản phẩm theo giá tăng dần/giảm dần và các tùy chọn khác.
+- Kết hợp tìm kiếm, lọc và sắp xếp.
+- Kiểm tra trạng thái không có kết quả.
+- Kiểm tra input bất thường: ký tự đặc biệt, XSS payload, SQL-like payload, chuỗi rất dài.
+
+1.5. Kiến trúc dự án
+
+Cấu trúc chính:
+- config.json: cấu hình URL, dữ liệu test và selector.
+- conftest.py: pytest fixture, vòng đời Chrome WebDriver, logging, artifact.
+- pages/: Page Object và helper thao tác UI.
+- tests/: các testcase pytest.
+- utils/: xử lý config, artifact, logging, parser và đường dẫn.
+- reports/: báo cáo HTML/XML, screenshot, page source và console log.
+- dashboard.py: dashboard Streamlit để xem lịch sử và kết quả chạy test.
+- pytest.ini: cấu hình pytest mặc định.
+
+============================================================
+CHƯƠNG 2: KẾ HOẠCH KIỂM THỬ, CÔNG CỤ KIỂM THỬ VÀ TESTCASE
+============================================================
+
+2.1. Mục tiêu kiểm thử
+
+Mục tiêu của bộ kiểm thử là xác minh các hành vi nghiệp vụ quan trọng:
+- Người dùng tìm kiếm sản phẩm và nhận được kết quả liên quan.
+- Khi lọc theo thương hiệu, danh sách sản phẩm phải phù hợp với thương hiệu đã chọn.
+- Khi sắp xếp theo giá, giá hiển thị phải đúng thứ tự tăng/giảm.
+- Khi kết hợp lọc, tìm kiếm và sắp xếp, trang vẫn giữ đúng trạng thái và dữ liệu.
+- Website không bị lỗi giao diện hoặc treo khi nhập dữ liệu bất thường.
+
+2.2. Phạm vi kiểm thử
+
+Trong phạm vi:
+- Tìm kiếm Logitech, Samsung, từ khóa tiếng Việt có dấu/không dấu.
+- Lọc laptop theo thương hiệu Apple.
+- Sắp xếp theo giá tăng dần/giảm dần.
+- Biến thể tìm kiếm: viết hoa, viết thường, có khoảng trắng, ký tự đặc biệt.
+- Tình huống không có kết quả.
+- Kiểm tra XSS/SQL-like payload ở mức giao diện.
+- Kiểm tra stress bằng chuỗi tìm kiếm dài khi chạy destructive test.
+
+Ngoài phạm vi:
+- Thanh toán, đăng nhập, giỏ hàng.
+- Kiểm thử API/backend trực tiếp.
+- Kiểm thử hiệu năng chính thức.
+- Kiểm thử bảo mật chuyên sâu.
+
+2.3. Công cụ kiểm thử
+
+Công cụ/libraries:
+- Python: ngôn ngữ lập trình testscript.
+- pytest: framework chạy testcase.
+- Selenium WebDriver: điều khiển trình duyệt Chrome.
+- pytest-xdist: chạy song song nhiều worker.
+- pytest-html: tạo báo cáo HTML.
+- Streamlit: dashboard xem kết quả chạy test.
+- Chrome/ChromeDriver: trình duyệt và driver thực thi UI test.
+
+2.4. Cấu hình chạy test
+
+Lệnh chạy smoke test mặc định:
+.\.venv\Scripts\python.exe -m pytest
+
+Lệnh chạy regression an toàn, không destructive/security:
+.\.venv\Scripts\python.exe -m pytest -m "regression and not destructive and not security"
+
+Lệnh chạy security payload:
+.\.venv\Scripts\python.exe -m pytest -m "security and not destructive" --run-security
+
+Lệnh chạy destructive test:
+.\.venv\Scripts\python.exe -m pytest -m destructive --run-destructive
+
+Lệnh chạy full suite bao gồm destructive/security:
+.\.venv\Scripts\python.exe -m pytest tests --run-destructive --run-security
+
+Lệnh chạy dashboard:
+.\.venv\Scripts\python.exe -m streamlit run dashboard.py
+
+2.5. Cơ chế chạy song song và cô lập trình duyệt
+
+Framework đã được điều chỉnh để phù hợp với chạy song song:
+- Mỗi pytest worker dùng một Chrome độc lập.
+- Mỗi testcase mở một tab riêng trong Chrome của worker.
+- Sau khi testcase kết thúc, tab của testcase được đóng.
+- Nếu Chrome/ChromeDriver của worker bị lỗi bởi destructive test, worker sẽ reset browser riêng của nó.
+- Full suite không dùng maxfail, vì cần ghi nhận đủ toàn bộ testcase vào báo cáo XML.
+
+Cách này giúp giới hạn số Chrome tối đa theo số worker, ví dụ 8 workers thì tối đa khoảng 8 Chrome chính, đồng thời vẫn giảm ảnh hưởng chéo giữa các testcase.
+
+2.6. Chiến lược artifact và báo cáo
+
+Khi testcase lỗi, framework lưu:
+- Screenshot tại reports/artifacts/<RUN_ID>/screenshots.
+- Page source HTML tại reports/artifacts/<RUN_ID>/pages.
+- Console log tại reports/artifacts/<RUN_ID>/console.
+- Báo cáo tổng hợp tại reports/report.html.
+- Kết quả XML tại reports/results.xml.
+- Lịch sử chạy test tại reports/run_history.json.
+
+2.7. Danh sách testcase chính
+
+Danh sách testcase chi tiết được trình bày thêm trong file Excel:
+- TESTCASE_KIEM_THU_TU_DONG.xlsx
+
+Các testcase tiêu biểu:
+
+TC01 - Lọc sản phẩm theo thương hiệu Apple
+- Script: tests/test_cases.py::test_filter_apple_brand
+- Kỳ vọng: URL có brands=apple, danh sách sản phẩm phù hợp Apple/MacBook.
+
+TC02 - Sắp xếp giá từ thấp đến cao
+- Script: tests/test_cases.py::test_sort_price_low_to_high
+- Kỳ vọng: danh sách giá tăng dần.
+
+TC03 - Tìm kiếm từ khóa Logitech
+- Script: tests/test_cases.py::test_search_logitech
+- Kỳ vọng: kết quả liên quan Logitech.
+
+TC04 - Kiểm tra các biến thể từ khóa tìm kiếm
+- Script: tests/test_search_variants.py::test_search_variants_returns_relevant_results
+- Dữ liệu: logitech, Logitech, "  Logitech  ", Logitech!@#
+- Kỳ vọng: mỗi biến thể trả về kết quả hợp lệ.
+
+TC05 - Tìm kiếm không có kết quả
+- Script: tests/test_search_variants.py::test_search_not_found_shows_no_results
+- Kỳ vọng: hiển thị trạng thái không có kết quả hợp lệ, không lỗi giao diện.
+
+TC06 - Lọc nhiều điều kiện
+- Script: tests/test_regression_filter_sort_search.py::test_filter_multiple_conditions
+- Kỳ vọng: danh sách sau lọc hợp lệ, không tăng bất thường.
+
+TC07 - Giữ trạng thái sắp xếp sau reload và điều hướng
+- Script: tests/test_regression_filter_sort_search.py::test_preserve_sort_state_on_reload_and_navigation
+- Kỳ vọng: giá vẫn được sắp xếp sau reload/quay lại URL.
+
+TC08 - Tìm kiếm tiếng Việt có dấu và không dấu
+- Script: tests/test_regression_filter_sort_search.py::test_search_vietnamese_accent_and_no_accent
+- Kỳ vọng: cả hai từ khóa đều có kết quả hợp lệ.
+
+TC09 - Tìm kiếm rỗng
+- Script: tests/test_regression_filter_sort_search.py::test_search_empty_query
+- Kỳ vọng: trang không trắng, ô tìm kiếm vẫn dùng được.
+
+TC10 - Kết hợp filter, search và sort
+- Script: tests/test_regression_filter_sort_search.py::test_sort_combined_with_filter_and_search
+- Kỳ vọng: dữ liệu hợp lệ, giá được sắp xếp tăng dần.
+
+TC11 - Kiểm tra XSS payload
+- Script: tests/test_black_box_extended.py::test_search_xss_payload_is_sanitized
+- Marker: security
+- Kỳ vọng: không có alert, không trắng trang, có kết quả hoặc no-result hợp lệ.
+
+TC12 - Kiểm tra SQL-like payload
+- Script: tests/test_black_box_extended.py::test_search_sql_payload_is_handled_safely
+- Marker: security
+- Kỳ vọng: không lộ lỗi database/SQL/stack trace.
+
+TC13 - Thay đổi từ khóa tìm kiếm
+- Script: tests/test_black_box_extended.py::test_search_change_keyword_updates_results
+- Kỳ vọng: kết quả thay đổi theo từ khóa mới.
+
+TC14 - Lọc sau reload
+- Script: tests/test_black_box_extended.py::test_filter_state_persists_after_reload
+- Kỳ vọng: trạng thái filter vẫn được giữ sau reload.
+
+TC15 - Tìm kiếm rồi sắp xếp theo giá
+- Script: tests/test_black_box_extended.py::test_search_then_sort_price_keeps_relevant_sorted_results
+- Kỳ vọng: kết quả vẫn liên quan từ khóa và giá tăng dần.
+
+TC16 - Lọc rồi sắp xếp theo giá
+- Script: tests/test_black_box_extended.py::test_filter_then_sort_price_keeps_filtered_sorted_results
+- Kỳ vọng: kết quả vẫn phù hợp filter và giá tăng dần.
+
+TC17 - Kiểm tra sắp xếp giá tăng/giảm
+- Script: tests/test_sort_verification.py::test_sort_price_orders
+- Kỳ vọng: danh sách giá đúng thứ tự tăng/giảm.
+
+TC18 - Sort các tùy chọn không phải giá
+- Script: tests/test_sort_verification.py::test_sort_changes_order_for_non_price_options
+- Kỳ vọng: thứ tự sản phẩm thay đổi hợp lý, trang không lỗi.
+
+TC19 - Tìm kiếm chuỗi rất dài
+- Script: tests/test_regression_filter_sort_search.py::test_search_very_long_query
+- Marker: destructive
+- Kỳ vọng: trang phản hồi trong ngưỡng, không treo browser.
+
+TC20 - Lặp lại long input không blank/lag
+- Script: tests/test_regression_filter_sort_search.py::test_search_repeated_long_input_does_not_blank_or_lag
+- Marker: destructive
+- Kỳ vọng: input không bị blank, browser vẫn phản hồi.
+
+============================================================
+CHƯƠNG 3: XÂY DỰNG TESTSCRIPT VÀ THỰC HIỆN KIỂM THỬ
+============================================================
+
+3.1. Mô hình xây dựng testscript
+
+Dự án áp dụng mô hình gần với Page Object:
+- Testcase trong tests/ tập trung vào ý đồ kiểm thử và assertion.
+- Các thao tác UI như search, click checkbox, sort, lấy tên sản phẩm, lấy giá sản phẩm nằm trong pages/catalog_page.py.
+- Các hàm dùng chung như đọc config, parse giá, lưu artifact nằm trong utils/.
+- conftest.py quản lý Chrome WebDriver, fixture, marker, screenshot, page source và console log.
+
+3.2. Luồng xử lý fixture Selenium
+
+Quy trình khi chạy test:
+1. pytest đọc cấu hình từ pytest.ini.
+2. conftest.py khởi tạo logging và đọc config.json.
+3. Mỗi worker tạo Chrome WebDriver độc lập khi chạy song song.
+4. Mỗi testcase mở tab riêng để tránh ảnh hưởng lẫn nhau.
+5. Test thực hiện thao tác trên website.
+6. Nếu test fail, framework lưu artifact phù hợp.
+7. Sau test, fixture đóng tab phụ và giữ session sạch.
+8. Khi kết thúc session, ghi run_history.json và báo cáo XML/HTML.
+
+3.3. Các hàm testscript quan trọng
+
+search_with_keyword(driver, config, keyword):
+- Tìm ô search input theo selector trong config.json.
+- Focus input, xóa dữ liệu cũ và nhập keyword.
+- Với chuỗi dài, dùng JavaScript để set value và dispatch event.
+- Nhấn Enter và chờ trang kết quả sẵn sàng.
+
+click_checkbox_by_text(driver, checkbox_text):
+- Tìm checkbox/filter label theo text.
+- Cuộn đến phần tử.
+- Click bằng Selenium, fallback bằng JavaScript nếu cần.
+
+apply_sort_option(driver, option_text):
+- Tìm khu vực "Sắp xếp theo".
+- So khớp text sau khi chuẩn hóa dấu tiếng Việt.
+- Click tùy chọn sắp xếp.
+
+extract_product_names(driver, config):
+- Tìm các element tên sản phẩm trong vùng kết quả chính.
+- Loại bỏ duplicate.
+- Trả về danh sách tên sản phẩm hiển thị.
+
+extract_latest_prices(driver, config):
+- Tìm các element giá hiện tại.
+- Parse text giá thành số nguyên.
+- Trả về danh sách giá để so sánh thứ tự.
+
+3.4. Tiêu chí đánh giá kết quả
+
+Pass:
+- Testcase hoàn thành.
+- Assertion đúng với kết quả mong đợi.
+- Không có lỗi Selenium/WebDriver ngoài ý muốn.
+
+Fail:
+- Kết quả thực tế sai với mong đợi.
+- Website không hiển thị dữ liệu cần kiểm tra.
+- Timeout hoặc phản hồi chậm vượt ngưỡng đã định nghĩa.
+- Xuất hiện dấu hiệu lỗi bảo mật/giao diện như alert XSS, lỗi database, trang trắng.
+
+Skip/Deselected:
+- Test destructive bị bỏ qua nếu không truyền --run-destructive.
+- Test security payload bị bỏ qua nếu không truyền --run-security.
+
+3.5. Kết quả chạy kiểm thử thực tế mới nhất
+
+Nguồn kết quả: reports/results.xml
+Thời điểm chạy: 25/05/2026 23:02:34 +07:00
+Môi trường: Windows, Python, pytest, Selenium WebDriver, Chrome.
+Chế độ chạy: Full suite bao gồm destructive/security.
+
+Tổng hợp kết quả:
+- Tổng số testcase: 36
+- Passed: 34
+- Failed: 2
+- Errors: 0
+- Skipped: 0
+- Thời gian thực thi theo XML: 132.261 giây
+- Exit code dashboard: 1
+
+Kết quả theo nhóm file:
+- tests/test_black_box_extended.py: 13 testcase, 13 pass, 0 fail.
+- tests/test_cases.py: 3 testcase, 3 pass, 0 fail.
+- tests/test_filter_advanced.py: 3 testcase, 3 pass, 0 fail.
+- tests/test_negative_cases.py: 2 testcase, 2 pass, 0 fail.
+- tests/test_regression_filter_sort_search.py: 8 testcase, 6 pass, 2 fail.
+- tests/test_search_variants.py: 5 testcase, 5 pass, 0 fail.
+- tests/test_sort_verification.py: 2 testcase, 2 pass, 0 fail.
+
+3.6. Defect phát hiện
+
+DEF-01: Search phản hồi chậm khi nhập chuỗi cực dài
+- Testcase: tests/test_regression_filter_sort_search.py::test_search_very_long_query
+- Loại: Destructive/Stress
+- Mức độ nghiêm trọng: Medium
+- Kết quả thực tế: Trang phản hồi sau 18.09 giây.
+- Kết quả mong đợi: Trang phản hồi trong ngưỡng 8.00 giây.
+- Thông báo lỗi: Page response is too slow after very long query (1000009 chars): 18.09s > threshold 8.00s.
+- Đánh giá: Đây là rủi ro về khả năng chịu input bất thường. Chức năng tìm kiếm thông thường vẫn pass, nhưng hệ thống chưa xử lý tốt chuỗi cực dài.
+
+DEF-02: Ô tìm kiếm bị trắng khi nhập lặp lại long input
+- Testcase: tests/test_regression_filter_sort_search.py::test_search_repeated_long_input_does_not_blank_or_lag
+- Loại: Destructive/Stress
+- Mức độ nghiêm trọng: High
+- Kết quả thực tế: Search box bị blank ở bước 7/15.
+- Kết quả mong đợi: Search box không bị blank, browser vẫn phản hồi ổn định.
+- Thông báo lỗi: DEFECT: search box became blank after repeated long input step 7/15.
+- Đánh giá: Đây là lỗi đáng chú ý hơn DEF-01 vì ảnh hưởng trực tiếp đến trạng thái input và trải nghiệm người dùng khi gặp dữ liệu bất thường.
+
+3.7. Nhận xét của tester
+
+Những điểm đã đạt:
+- Framework chạy được đủ 36/36 testcase trong full suite.
+- Dashboard đọc đúng log mới nhất và không còn thiếu testcase trong XML.
+- Cơ chế chạy song song đã hợp lý hơn: mỗi worker có Chrome độc lập, mỗi test dùng tab riêng.
+- Các testcase chức năng chính gồm tìm kiếm, lọc, sắp xếp và kết hợp đều pass.
+- Các testcase security UI với XSS/SQL-like payload đều pass.
+- Không có error hạ tầng trong lần chạy mới nhất.
+
+Những điểm chưa đạt:
+- Còn 2 testcase fail thật thuộc nhóm destructive/stress.
+- Không nên sửa testcase để chuyển fail thành pass giả.
+- Cần ghi nhận 2 defect này trong báo cáo và xem là rủi ro chất lượng sản phẩm khi xử lý input bất thường.
+
+3.8. Đề xuất cải tiến
+
+- Giữ lại 2 testcase destructive đang fail để theo dõi defect hồi quy.
+- Với DEF-01, phía website nên giới hạn độ dài input hoặc tối ưu xử lý tìm kiếm khi query quá dài.
+- Với DEF-02, phía website nên đảm bảo state của search input không bị reset/blank khi nhập lặp dữ liệu dài.
+- Có thể bổ sung kiểm thử giới hạn input ở các mức 255, 1.000, 10.000 ký tự để xác định ngưỡng lỗi rõ hơn.
+- Tách kết luận báo cáo thành hai phần: chức năng chính và stress/destructive, tránh đánh đồng lỗi stress với lỗi smoke/regression.
+
+3.9. Dashboard báo cáo
+
+Dashboard Streamlit chạy tại:
+- URL: http://localhost:8501
+
+Dashboard dùng để:
+- Xem kết quả lần chạy gần nhất.
+- Xem stdout/stderr.
+- Xem danh sách testcase pass/fail/skip.
+- Lọc testcase theo trạng thái.
+- Theo dõi lịch sử chạy test và artifact.
+
+============================================================
+KẾT LUẬN
+============================================================
+
+Dự án Phong Vu Selenium Test Framework đã đáp ứng mục tiêu xây dựng bộ kiểm thử tự động cho các luồng quan trọng gồm tìm kiếm, lọc, sắp xếp và các tình huống kết hợp. Framework có cấu trúc Page Object, có config tập trung, có dashboard, có artifact khi lỗi và có khả năng chạy song song với cơ chế cô lập browser theo worker.
+
+Kết quả chạy mới nhất ghi nhận đủ 36/36 testcase, trong đó 34 passed, 2 failed, 0 skipped. Các testcase chức năng chính và security UI đều đạt. Hai testcase fail thuộc nhóm destructive/stress, phản ánh rủi ro thật khi website xử lý input cực dài hoặc nhập lặp long input.
+
+Kết luận chuyên môn: hệ thống test và dashboard đã ổn; bộ testcase đủ cho phạm vi hiện tại; sản phẩm chưa đạt pass tuyệt đối vì còn 2 defect stress cần ghi nhận và theo dõi. Không nên che hoặc sửa test để làm xanh kết quả, mà nên báo cáo trung thực 2 lỗi này như defect chất lượng.

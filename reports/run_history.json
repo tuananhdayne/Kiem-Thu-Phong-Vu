@@ -1,0 +1,148 @@
+[
+  {
+    "time": "2026-05-31T03:30:11.390342Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-o addopts= -q tests/filter/test_filter_advanced.py::test_filter_multiple_conditions_then_remove_one_updates_results tests/sort/test_sort_verification.py::test_sort_switching_between_sort_types_keeps_results_visible",
+    "returncode": 0,
+    "duration": 86.32
+  },
+  {
+    "time": "2026-05-31T03:29:03.225437Z",
+    "run_id": "651ba22c-8c7e-499c-ad3f-dbef787c6345",
+    "git_commit": "-",
+    "mode": "All including destructive/security",
+    "target": "tests (all)",
+    "description": "",
+    "workers": 4,
+    "headless": true,
+    "returncode": 1,
+    "duration": 206.11
+  },
+  {
+    "time": "2026-05-31T03:21:05.909628Z",
+    "run_id": "4dd58e03-7cc6-491a-acc2-72d342587fd3",
+    "git_commit": "-",
+    "mode": "All including destructive/security",
+    "target": "tests (all)",
+    "description": "",
+    "workers": 4,
+    "headless": true,
+    "returncode": 1,
+    "duration": 272.59
+  },
+  {
+    "time": "2026-05-30T17:38:16.944190Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-o addopts= -q tests/search/test_search_functional.py::test_search_load_more_preserves_keyword",
+    "returncode": 0,
+    "duration": 16.92
+  },
+  {
+    "time": "2026-05-30T17:37:52.134839Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Tùy chỉnh)",
+    "target": "-q -k load_more",
+    "returncode": 5,
+    "duration": 0.3
+  },
+  {
+    "time": "2026-05-30T17:37:45.645201Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q tests/search::test_search_load_more_preserves_keyword -q",
+    "returncode": 4,
+    "duration": 0.01
+  },
+  {
+    "time": "2026-05-30T17:34:45.371613Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-o addopts= -q tests/search",
+    "returncode": 0,
+    "duration": 279.18
+  },
+  {
+    "time": "2026-05-30T17:34:20.912588Z",
+    "run_id": "833fb6e0-ad21-4bed-9e7f-750ce99cf438",
+    "git_commit": "-",
+    "mode": "All including destructive/security",
+    "target": "tests (all)",
+    "description": "",
+    "workers": 4,
+    "headless": true,
+    "returncode": 1,
+    "duration": 309.72
+  },
+  {
+    "time": "2026-05-30T17:29:20.636094Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q tests/search",
+    "returncode": 5,
+    "duration": 2.15
+  },
+  {
+    "time": "2026-05-30T17:27:02.173826Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Tùy chỉnh)",
+    "target": "-q -k search",
+    "returncode": 0,
+    "duration": 10.67
+  },
+  {
+    "time": "2026-05-30T17:21:04.151496Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q -m slow tests/search",
+    "returncode": 1,
+    "duration": 181.65
+  },
+  {
+    "time": "2026-05-30T17:09:13.541937Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q -m slow tests/test_search_additional.py",
+    "returncode": 0,
+    "duration": 58.03
+  },
+  {
+    "time": "2026-05-30T17:08:02.111808Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q tests/test_search_additional.py",
+    "returncode": 5,
+    "duration": 0.33
+  },
+  {
+    "time": "2026-05-30T17:06:00.368994Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q tests/test_search_additional.py",
+    "returncode": 5,
+    "duration": 0.42
+  }
+]
