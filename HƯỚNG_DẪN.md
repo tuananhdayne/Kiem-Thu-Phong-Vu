@@ -56,6 +56,61 @@ Bạn có thể chạy các kịch bản kiểm thử trực tiếp bằng lện
   pytest tests/ -m regression -v
   ```
 
+### Chạy từ Streamlit Dashboard (mẹo & cấu hình môi trường)
+
+Dashboard (file `dashboard.py`) khởi chạy pytest cho bạn và đặt một số biến môi trường giúp kiểm soát hành vi của Selenium. Một số tuỳ chỉnh hữu dụng:
+
+- `SELENIUM_HEADLESS=1` — chạy Chrome ở chế độ headless (mặc định dashboard để bạn chọn Headless/Headful trên UI).
+- `SELENIUM_BLOCK_IMAGES=0|1` — 0 = cho phép tải ảnh (giúp debug visual), 1 = chặn ảnh để tiết kiệm băng thông.
+- `SELENIUM_WORKER_BROWSER=1` — dùng browser riêng cho mỗi worker (dùng cho destructive tests).
+- `SELENIUM_ISOLATE_EACH_TEST=1` — khởi Chrome riêng cho từng test (chậm hơn nhưng cô lập tốt hơn).
+- `SELENIUM_COMMAND_TIMEOUT` — tăng khi site chậm (mặc định 30s từ dashboard).
+
+Ví dụ: trong Dashboard bạn có thể bật `Headless = off`, `Workers = 1` để thấy cửa sổ trình duyệt khi debug.
+
+Khi chạy từ Dashboard, hệ thống tự set `STREAMLIT_DASHBOARD_RUN=1` để tránh ghi đè lịch sử chạy tự động.
+
+Mẹo debug skip/fail phổ biến khi chạy trên Dashboard:
+
+- Autocomplete suggestions bị skip: test chờ suggestion trong vài giây rồi skip nếu không có. Nếu site dùng JS khác (shadow DOM hoặc sự kiện custom), bạn có thể:
+  - chép selector thực tế từ DevTools vào `tests/search/test_search_functional.py` tại `suggestion_selectors`;
+  - cho phép tải ảnh (`SELENIUM_BLOCK_IMAGES=0`) và bật headful để quan sát;
+  - tăng timeout tìm suggestion (ví dụ 6 → 8s) hoặc dispatch event `input` (một số test đã có fallback này).
+- Pagination / Load-more bị skip: test cố tìm control (link `rel=next` hoặc button `Xem thêm`). Nếu site dùng control khác, thêm selector vào bài test `pagination_selectors` / `load_more_selectors` hoặc cập nhật `config.json` để đảm bảo `results_container` đúng.
+- Test lấy nhầm khối "ưu đãi nổi bật": helper `find_elements_within_results()` ưu tiên phần listing phía dưới thanh `Sắp xếp theo`. Nếu vẫn nhầm, cập nhật `config.json` → `selectors.results_container` để chỉ rõ container chính.
+
+Nếu muốn chạy chỉ 1 test để debug nhanh từ CLI:
+
+```powershell
+# chạy một testcase cụ thể
+pytest tests/search/test_search_functional.py::test_search_autocomplete_suggestion_click_navigates_to_results -q -k "autocomplete"
+```
+
+Hoặc thu thập danh sách test (collect-only) để so sánh số lượng trước/sau thay đổi:
+
+```powershell
+pytest --collect-only -q
+```
+
+### Lỗi thường gặp và sửa nhanh
+
+- `NameError: name 'time' is not defined` — thêm `import time` vào file test nếu dùng `time.time()`.
+- `NameError: name 'search_with_keyword' is not defined` — kiểm tra import trong file test: `from pages.catalog_page import search_with_keyword`.
+
+### Cập nhật mã và đẩy lên GitHub
+
+Sau khi chỉnh sửa file test hoặc cấu hình, bạn có thể commit và push như sau:
+
+```powershell
+cd "d:\Kiem Thu"
+.venv\Scripts\activate
+git add -A
+git commit -m "Docs: update HƯỚNG_DẪN.md; Tests: tweak autocomplete and time import fixes"
+git push origin main
+```
+
+Gợi ý: trước khi push, chạy `pytest --collect-only` để đảm bảo không có lỗi import/syntax.
+
 * **Chạy song song (Parallel) để tăng tốc (nếu pytest-xdist được cài):**
   ```powershell
   pytest tests/ -n 4 -v
