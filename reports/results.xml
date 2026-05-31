@@ -1,50 +1,58 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="2" tests="45" time="205.075" timestamp="2026-05-31T10:25:37.816845+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="51.612" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="31.569" /><testcase classname="tests.search.test_search_functional" name="test_search_enter_vs_click_icon_same_result" time="40.545" /><testcase classname="tests.search.test_search_functional" name="test_search_deeplink_query_loads_correct_results" time="27.107" /><testcase classname="tests.search.test_search_functional" name="test_search_load_more_preserves_keyword" time="22.707"><skipped type="pytest.skip" message="No pagination or load-more control detected on search results page">D:\Kiem Thu\tests\search\test_search_functional.py:69: No pagination or load-more control detected on search results page</skipped></testcase><testcase classname="tests.search.test_search_functional" name="test_search_autocomplete_suggestion_click_navigates_to_results" time="16.627"><skipped type="pytest.skip" message="No autocomplete suggestions detected on this site">D:\Kiem Thu\tests\search\test_search_functional.py:171: No autocomplete suggestions detected on this site</skipped></testcase><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="19.723" /><testcase classname="tests.search.test_search_regression" name="test_search_empty_query" time="6.741" /><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="17.232"><failure message="Failed: Page response too slow after very long query: 15.95s &gt; 8.00s">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="70cd54c491af85f39209c900175ba3c8")&gt;
-test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
-
-    @pytest.mark.destructive
-    def test_search_very_long_query(driver, test_config):
-        driver.get(test_config["base_url"])
-        long_query_size = int(os.getenv("LONG_QUERY_SIZE", "1000000"))
-        long_query = "logitech_" + ("x" * long_query_size)
-    
-        try:
-            start_time = time.time()
-            search_with_keyword(driver, test_config, long_query, timeout=6)
-            time.sleep(1)
-            elapsed = time.time() - start_time
-            max_seconds = float(os.getenv("DESTRUCTIVE_MAX_RESPONSE_SECONDS", "8"))
-            if elapsed &gt; max_seconds:
-&gt;               pytest.fail(f"Page response too slow after very long query: {elapsed:.2f}s &gt; {max_seconds:.2f}s")
-E               Failed: Page response too slow after very long query: 15.95s &gt; 8.00s
-
-tests\search\test_search_regression.py:64: Failed</failure></testcase><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="28.237" /><testcase classname="tests.search.test_search_regression" name="test_search_results_are_scoped_to_main_results_container" time="8.883" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]" time="6.988" /><testcase classname="tests.search.test_search_regression" name="test_search_change_keyword_updates_results" time="13.481" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&quot;&lt;img src=x onerror=alert(1)&gt;]" time="8.488" /><testcase classname="tests.search.test_search_regression" name="test_search_repeated_long_input_does_not_blank_or_lag" time="5.806" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[') UNION SELECT NULL,NULL --]" time="10.082" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT NULL --]" time="8.644" /><testcase classname="tests.search.test_search_regression" name="test_search_then_sort_price_keeps_relevant_sorted_results" time="12.397" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' OR '1'='1]" time="4.465" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely['; DROP TABLE products; --]" time="5.106" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[&quot; OR &quot;1&quot;=&quot;1]" time="5.148" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT username,password FROM users --]" time="11.548" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[logitech]" time="12.328" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[admin' --]" time="6.970" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech]" time="12.008" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[  Logitech  ]" time="11.623" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="11.938" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech!@#]" time="11.771" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit ech]" time="11.601" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitechk]" time="11.626" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logtech]" time="11.766" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit3ch]" time="14.230" /><testcase classname="tests.search.test_search_variants" name="test_search_not_found_shows_no_results" time="6.074" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_price_orders" time="13.018" /><testcase classname="tests.smoke.test_cases" name="test_filter_apple_brand" time="25.984" /><testcase classname="tests.smoke.test_cases" name="test_sort_price_low_to_high" time="12.945" /><testcase classname="tests.smoke.test_cases" name="test_search_logitech" time="10.482" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_changes_order_for_non_price_options" time="29.753" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="24.124"><failure message="NameError: name 'time' is not defined. Did you forget to import 'time'?">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="f44434e3e4757fb93468665347c0c423")&gt;
-test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
-
-    def test_filter_then_sort_price_keeps_filtered_sorted_results(driver, test_config):
-        """Regression: filtered listing must remain filtered after applying ascending price sort."""
-        brand = test_config["test_data"]["brand_to_filter"]
-        brand_keywords = test_config.get("test_data", {}).get("brand_match_keywords", {}).get(brand, [brand.lower()])
-        brand_keywords = [keyword.lower() for keyword in brand_keywords]
-    
-        driver.get(test_config["pages"]["laptop"])
-        old_names = extract_product_names(driver, test_config, limit=10)
-        click_checkbox_by_text(driver, brand)
-        WebDriverWait(driver, 12).until(lambda d: "brands=apple" in d.current_url.lower())
-        filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=12)
-        assert filtered_names, "No products after applying brand filter"
-    
-        sort_option = resolve_available_text(driver, test_config["test_data"]["sort_option_candidates"])
-        apply_sort_option(driver, sort_option)
-    
-        prices = []
-&gt;       deadline = time.time() + 8
-                   ^^^^
-E       NameError: name 'time' is not defined. Did you forget to import 'time'?
-
-tests\test_black_box_extended.py:62: NameError</failure></testcase><testcase classname="tests.test_negative_cases" name="test_missing_selector_raises" time="3.231" /><testcase classname="tests.test_regression_filter_sort_search" name="test_preserve_sort_state_on_reload_and_navigation" time="17.207" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="26.503" /><testcase classname="tests.test_regression_filter_sort_search" name="test_filter_multiple_conditions" time="43.577" /><testcase classname="tests.test_regression_filter_sort_search" name="test_sort_combined_with_filter_and_search" time="40.790"><failure message="NameError: name 'search_with_keyword' is not defined">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="93161e7295e01fba1e1c64ee7042a4eb")&gt;
-test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
-
-&gt;   ???
-E   NameError: name 'search_with_keyword' is not defined
-
-tests\test_regression_filter_sort_search.py:196: NameError</failure></testcase><testcase classname="tests.test_negative_cases" name="test_slow_page_timeout" time="2.079" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="22.710" timestamp="2026-05-31T21:34:49.627255+07:00" hostname="TUANANH"><testcase classname="pytest" name="internal" time="0.000"><error message="internal error">Traceback (most recent call last):
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+                         ~~~~^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\main.py", line 372, in _main
+    config.hook.pytest_runtestloop(session=session)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 167, in _multicall
+    raise exception
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\logging.py", line 801, in pytest_runtestloop
+    return (yield)  # Run all the tests.
+            ^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\terminal.py", line 707, in pytest_runtestloop
+    result = yield
+             ^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "d:\Kiem Thu\.venv\Lib\site-packages\xdist\dsession.py", line 138, in pytest_runtestloop
+    self.loop_once()
+    ~~~~~~~~~~~~~~^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\xdist\dsession.py", line 163, in loop_once
+    call(**kwargs)
+    ~~~~^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\xdist\dsession.py", line 315, in worker_logstart
+    self.config.hook.pytest_runtest_logstart(nodeid=nodeid, location=location)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 167, in _multicall
+    raise exception
+  File "d:\Kiem Thu\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\terminal.py", line 619, in pytest_runtest_logstart
+    self.flush()
+    ~~~~~~~~~~^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\terminal.py", line 531, in flush
+    self._tw.flush()
+    ~~~~~~~~~~~~~~^^
+  File "d:\Kiem Thu\.venv\Lib\site-packages\_pytest\_io\terminalwriter.py", line 187, in flush
+    self._file.flush()
+    ~~~~~~~~~~~~~~~~^^
+OSError: [Errno 22] Invalid argument</error></testcase></testsuite></testsuites>

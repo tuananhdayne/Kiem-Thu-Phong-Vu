@@ -143,6 +143,11 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
     search_input = find_search_input(driver, test_config, timeout=5)
     driver.execute_script("arguments[0].focus(); arguments[0].value = '';", search_input)
     search_input.send_keys(partial)
+    # Some headless or optimized runs need an explicit input event to trigger JS suggestions
+    try:
+        driver.execute_script("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", search_input)
+    except Exception:
+        pass
 
     # Common suggestion selectors
     suggestion_selectors = [
@@ -154,7 +159,7 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
 
     # wait a moment for suggestions to appear
     suggestion = None
-    end = time.time() + 4
+    end = time.time() + 6
     while time.time() < end and suggestion is None:
         for sel in suggestion_selectors:
             try:

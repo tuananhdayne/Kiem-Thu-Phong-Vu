@@ -1,5 +1,17 @@
 [
   {
+    "time": "2026-05-31T04:24:27.387025Z",
+    "run_id": "152d621e-0022-4e0c-b976-9604dc7b1238",
+    "git_commit": "0d92d28",
+    "mode": "All including destructive/security",
+    "target": "tests (all)",
+    "description": "",
+    "workers": 4,
+    "headless": true,
+    "returncode": 1,
+    "duration": 309.64
+  },
+  {
     "time": "2026-05-31T03:30:11.390342Z",
     "run_id": "-",
     "git_commit": "-",
