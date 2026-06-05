@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="1090.115" timestamp="2026-06-04T23:56:47.125261+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="1089.689"><failure message="Failed: FREEZE: Trinh duyet bi treo hoan toan. So lan lap on dinh truoc khi treo: 88. Lan lap gay treo: 89. Tong ky tu tai thoi diem treo: 89,000,000. Loi: HTTPConnectionPool(host='localhost', port=52986): Read timed out. (read timeout=30)">timed out
+
+The above exception was the direct cause of the following exception:
+HTTPConnectionPool(host='localhost', port=52986): Read timed out. (read timeout=30)
+
+During handling of the above exception, another exception occurred:
+FREEZE: Trinh duyet bi treo hoan toan. So lan lap on dinh truoc khi treo: 88. Lan lap gay treo: 89. Tong ky tu tai thoi diem treo: 89,000,000. Loi: HTTPConnectionPool(host='localhost', port=52986): Read timed out. (read timeout=30)</failure></testcase></testsuite></testsuites>

@@ -126,11 +126,6 @@ def _test_business_description(name: str, doc: str, markers: list[str]) -> dict[
             "expected": "PASS only when the page does not freeze, does not go blank, remains interactive, and shows results or a valid no-result state.",
             "risk": "FAIL when the page freezes, goes blank, stops rendering, cannot be interacted with, or lacks a valid no-result state. Destructive: run only with `--run-destructive`.",
         },
-        "test_search_repeated_long_input_does_not_blank_or_lag": {
-            "goal": "Verify repeated long input/paste into the search box does not blank the input or make the page lag.",
-            "expected": "PASS only when each input step keeps the search value, the page remains interactive, and submission still leaves a valid page state.",
-            "risk": "FAIL when the search box becomes blank, loses characters, responds too slowly, freezes, or the browser/WebDriver stops responding. Destructive: run only with `--run-destructive`.",
-        },
         "test_search_xss_payload_is_sanitized": {
             "goal": "Verify script-like search payloads are handled safely as plain user input.",
             "expected": "No browser alert/script execution, no blank page, and the result area ends in either valid products or a valid no-result state.",

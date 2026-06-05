@@ -107,7 +107,7 @@ def _visible_filter_label_texts(driver, timeout=8):
 
 
 def test_filter_multiple_conditions(driver, test_config):
-    """Regression: apply multiple filters together and verify product results update."""
+    """Hồi quy: Áp dụng đồng thời nhiều bộ lọc khác nhau và xác nhận kết quả cập nhật chính xác."""
     driver.get(test_config["pages"]["laptop"])
     wait = WebDriverWait(driver, 15)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "label.check-box input[type='checkbox']")))
@@ -128,7 +128,7 @@ def test_filter_multiple_conditions(driver, test_config):
 
 
 def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
-    """Regression: preserve ascending price sort after reload and return navigation."""
+    """Hồi quy: Giữ nguyên trạng thái sắp xếp giá tăng dần sau khi tải lại trang hoặc điều hướng quay lại."""
     driver.get(test_config["pages"]["laptop"])
     wait = WebDriverWait(driver, 20)
 
@@ -166,7 +166,7 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
 
 
 def test_sort_combined_with_filter_and_search(driver, test_config):
-    """Regression: sort still works after filtering and on search-result pages."""
+    """Hồi quy: Sắp xếp giá vẫn hoạt động chính xác sau khi đã áp dụng lọc hoặc trên trang kết quả tìm kiếm."""
     driver.get(test_config["pages"]["laptop"])
     wait = WebDriverWait(driver, 15)
 

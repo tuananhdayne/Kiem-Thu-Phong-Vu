@@ -1,0 +1,2220 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="46" time="365.951" timestamp="2026-06-04T19:33:14.558338+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="38.875" /><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="63.921" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="62.028" /><testcase classname="tests.search.test_search_regression" name="test_search_change_keyword_updates_results" time="74.031"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56363): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x0000028D954FC050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56363) at 0x28d942dd1d0&gt;
+method = 'POST', url = '/session/2aecaad94ccb34ec2045a171367eebea/url'
+body = '{"url": "https://phongvu.vn"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x0000028D942E1F60&gt;
+b = &lt;memory at 0x0000028D9408E740&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="2aecaad94ccb34ec2045a171367eebea")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_search_change_keyword_updates_results(driver, test_config):
+        """Xác thực việc đổi từ khóa tìm kiếm (từ Logitech sang Samsung) sẽ cập nhật danh sách sản phẩm mới tương ứng."""
+&gt;       driver.get(test_config["base_url"])
+
+tests\search\test_search_regression.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:488: in get
+    self.execute(Command.GET, {"url": url})
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x0000028D954FC050&gt;
+err = TimeoutError('timed out')
+url = '/session/2aecaad94ccb34ec2045a171367eebea/url', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56363): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]" time="65.675" /><testcase classname="tests.search.test_search_regression" name="test_search_repeated_long_input_does_not_blank_or_lag" time="66.645"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56366): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7D30050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56366) at 0x187a7b1d1d0&gt;
+method = 'POST', url = '/session/04d93f72345e41796b3bc0736b380c55/url'
+body = '{"url": "https://phongvu.vn"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x00000187A7B21F00&gt;
+b = &lt;memory at 0x00000187A68FE740&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="04d93f72345e41796b3bc0736b380c55")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    @pytest.mark.destructive
+    def test_search_repeated_long_input_does_not_blank_or_lag(driver, test_config):
+        """Destructive: Kiểm tra việc nhập liên tục các chuỗi văn bản dài vào ô tìm kiếm không gây treo hoặc xóa trắng input."""
+&gt;       driver.get(test_config["base_url"])
+
+tests\search\test_search_regression.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:488: in get
+    self.execute(Command.GET, {"url": url})
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7D30050&gt;
+err = TimeoutError('timed out')
+url = '/session/04d93f72345e41796b3bc0736b380c55/url', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56366): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_functional" name="test_search_autocomplete_suggestion_click_navigates_to_results" time="65.452" /><testcase classname="tests.search.test_search_functional" name="test_search_load_more_preserves_keyword" time="94.551" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="134.797" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="50.304" /><testcase classname="tests.search.test_search_regression" name="test_search_empty_query" time="22.655" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&quot;&lt;img src=x onerror=alert(1)&gt;]" time="68.716"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56365): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001CED2C2FE00&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56365) at 0x1ced2c8d1d0&gt;
+method = 'POST', url = '/session/d83eafe6c25022327b09780268e70107/elements'
+body = '{"using": "css selector", "value": "input[aria-label=\'Search\']"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x000001CED2C92AA0&gt;
+b = &lt;memory at 0x000001CED2A3E800&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="d83eafe6c25022327b09780268e70107")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+payload = '"&lt;img src=x onerror=alert(1)&gt;'
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            "&lt;script&gt;alert(1)&lt;/script&gt;",
+            '\"&lt;img src=x onerror=alert(1)&gt;',
+        ],
+    )
+    @pytest.mark.security
+    def test_search_xss_payload_is_sanitized(driver, test_config, payload):
+        driver.get(test_config["base_url"])
+    
+&gt;       search_with_keyword(driver, test_config, payload, timeout=8)
+
+tests\search\test_search_security.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:311: in search_with_keyword
+    search_input = find_search_input(driver, config, timeout=timeout)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\catalog_page.py:298: in find_search_input
+    return first_visible(driver, config["selectors"]["search_input"], timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\base_page.py:41: in first_visible
+    raise last_exc
+pages\base_page.py:30: in first_visible
+    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:899: in find_elements
+    return self.execute(Command.FIND_ELEMENTS, {"using": by, "value": value})["value"] or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001CED2C2FE00&gt;
+err = TimeoutError('timed out')
+url = '/session/d83eafe6c25022327b09780268e70107/elements', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56365): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_functional" name="test_search_enter_vs_click_icon_same_result" time="69.135"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56367): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001A77A1F0050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56367) at 0x1a779fbd590&gt;
+method = 'POST', url = '/session/b7807b6cba90a8b6b167bccfb6e683e9/url'
+body = '{"url": "https://phongvu.vn"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x000001A779FC2B60&gt;
+b = &lt;memory at 0x000001A778D9E740&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="b7807b6cba90a8b6b167bccfb6e683e9")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_search_enter_vs_click_icon_same_result(driver, test_config):
+        """So sánh kết quả tìm kiếm giữa việc nhấn phím Enter và việc click chuột vào biểu tượng kính lúp tìm kiếm."""
+        keyword = test_config["test_data"].get("search_keyword", "Logitech")
+&gt;       driver.get(test_config["base_url"])
+
+tests\search\test_search_functional.py:391: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:488: in get
+    self.execute(Command.GET, {"url": url})
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001A77A1F0050&gt;
+err = TimeoutError('timed out')
+url = '/session/b7807b6cba90a8b6b167bccfb6e683e9/url', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56367): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT NULL --]" time="19.916" /><testcase classname="tests.search.test_search_regression" name="test_search_then_sort_price_keeps_relevant_sorted_results" time="44.568" /><testcase classname="tests.search.test_search_regression" name="test_search_results_are_scoped_to_main_results_container" time="91.422"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=50924): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7DA8410&gt;
+conn = &lt;HTTPConnection(host='localhost', port=50924) at 0x187a7d383e0&gt;
+method = 'POST', url = '/session/705595feb881c3cdc55eb186efade4f9/url'
+body = '{"url": "https://phongvu.vn"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x00000187A7B219F0&gt;
+b = &lt;memory at 0x00000187A68FF400&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="705595feb881c3cdc55eb186efade4f9")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_search_results_are_scoped_to_main_results_container(driver, test_config):
+        """Xác thực danh sách sản phẩm tìm được nằm gọn trong khu vực kết quả chính, không bị tràn ra ngoài."""
+&gt;       driver.get(test_config["base_url"])
+
+tests\search\test_search_regression.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:488: in get
+    self.execute(Command.GET, {"url": url})
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7DA8410&gt;
+err = TimeoutError('timed out')
+url = '/session/705595feb881c3cdc55eb186efade4f9/url', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=50924): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[admin' --]" time="14.262" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[&quot; OR &quot;1&quot;=&quot;1]" time="16.308" /><testcase classname="tests.search.test_search_functional" name="test_search_deeplink_query_loads_correct_results" time="86.818" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[logitech]" time="66.506" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[') UNION SELECT NULL,NULL --]" time="17.848" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT username,password FROM users --]" time="16.637" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="41.834" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech!@#]" time="147.664"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56362): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001DA90478050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56362) at 0x1da9023d950&gt;
+method = 'POST', url = '/session/012e76ccbe668d13648a37567320ffcc/elements'
+body = '{"using": "css selector", "value": "input[type=\'search\']"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x000001DA902429B0&gt;
+b = &lt;memory at 0x000001DA8F01E740&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="012e76ccbe668d13648a37567320ffcc")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+variant = 'Logitech!@#'
+
+    @pytest.mark.parametrize("variant", [
+        "logitech",
+        "Logitech",
+        "  Logitech  ",
+        "Logitech!@#",
+    ])
+    def test_search_variants_returns_relevant_results(driver, test_config, variant):
+        base_url = test_config["base_url"]
+        driver.get(base_url)
+    
+&gt;       search_with_keyword(driver, test_config, variant)
+
+tests\search\test_search_variants.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:311: in search_with_keyword
+    search_input = find_search_input(driver, config, timeout=timeout)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\catalog_page.py:298: in find_search_input
+    return first_visible(driver, config["selectors"]["search_input"], timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\base_page.py:41: in first_visible
+    raise last_exc
+pages\base_page.py:30: in first_visible
+    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:899: in find_elements
+    return self.execute(Command.FIND_ELEMENTS, {"using": by, "value": value})["value"] or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000001DA90478050&gt;
+err = TimeoutError('timed out')
+url = '/session/012e76ccbe668d13648a37567320ffcc/elements', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56362): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logtech]" time="27.211" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' OR '1'='1]" time="7.490" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely['; DROP TABLE products; --]" time="83.719"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=50924): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7DA8410&gt;
+conn = &lt;HTTPConnection(host='localhost', port=50924) at 0x187a7d39220&gt;
+method = 'POST', url = '/session/705595feb881c3cdc55eb186efade4f9/elements'
+body = '{"using": "css selector", "value": "input[placeholder*=\'T\\u00ecm\']"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x00000187A7D8CD60&gt;
+b = &lt;memory at 0x00000187A68FF640&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="705595feb881c3cdc55eb186efade4f9")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+payload = "'; DROP TABLE products; --"
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            "' OR '1'='1",
+            '" OR "1"="1',
+            "' UNION SELECT NULL --",
+            "' UNION SELECT username,password FROM users --",
+            "') UNION SELECT NULL,NULL --",
+            "'; DROP TABLE products; --",
+            "admin' --",
+        ],
+    )
+    @pytest.mark.security
+    def test_search_sql_payload_is_handled_safely(driver, test_config, payload):
+        driver.get(test_config["base_url"])
+    
+&gt;       search_with_keyword(driver, test_config, payload, timeout=8)
+
+tests\search\test_search_security.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:311: in search_with_keyword
+    search_input = find_search_input(driver, config, timeout=timeout)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\catalog_page.py:298: in find_search_input
+    return first_visible(driver, config["selectors"]["search_input"], timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\base_page.py:41: in first_visible
+    raise last_exc
+pages\base_page.py:30: in first_visible
+    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:899: in find_elements
+    return self.execute(Command.FIND_ELEMENTS, {"using": by, "value": value})["value"] or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000187A7DA8410&gt;
+err = TimeoutError('timed out')
+url = '/session/705595feb881c3cdc55eb186efade4f9/elements', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=50924): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[  Logitech  ]" time="28.160" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit3ch]" time="65.707" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech]" time="25.883" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitechk]" time="31.361" /><testcase classname="tests.smoke.test_cases" name="test_search_logitech" time="18.816" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="58.188" /><testcase classname="tests.search.test_search_variants" name="test_search_not_found_shows_no_results" time="51.185" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_price_orders" time="93.349"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56360): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000172FDF40050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=56360) at 0x172fdd2de50&gt;
+method = 'POST', url = '/session/9ce7e01ca6f0c4195dfcde5c86758244/url'
+body = '{"url": "https://phongvu.vn/c/man-hinh-may-tinh"}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x00000172FDD32EF0&gt;
+b = &lt;memory at 0x00000172FCB0E140&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="9ce7e01ca6f0c4195dfcde5c86758244")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_sort_price_orders(driver, test_config):
+        monitor_url = test_config["pages"]["monitor"]
+        sort_opts = test_config["test_data"]["sort_options"]
+        sort_candidates = test_config["test_data"].get("sort_option_candidates", [])
+    
+&gt;       driver.get(monitor_url)
+
+tests\sort\test_sort_verification.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:488: in get
+    self.execute(Command.GET, {"url": url})
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000172FDF40050&gt;
+err = TimeoutError('timed out')
+url = '/session/9ce7e01ca6f0c4195dfcde5c86758244/url', timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=56360): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.smoke.test_cases" name="test_filter_apple_brand" time="42.627" /><testcase classname="tests.test_negative_cases" name="test_missing_selector_raises" time="9.159" /><testcase classname="tests.test_regression_filter_sort_search" name="test_sort_combined_with_filter_and_search" time="81.840" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_changes_order_for_non_price_options" time="98.603" /><testcase classname="tests.smoke.test_cases" name="test_sort_price_low_to_high" time="31.171" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_switching_between_sort_types_keeps_results_visible" time="85.051" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit ech]" time="16.040" /><testcase classname="tests.test_regression_filter_sort_search" name="test_preserve_sort_state_on_reload_and_navigation" time="78.123" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="65.789" /><testcase classname="tests.test_regression_filter_sort_search" name="test_filter_multiple_conditions" time="93.409" /><testcase classname="tests.test_negative_cases" name="test_slow_page_timeout" time="8.493" /></testsuite></testsuites>

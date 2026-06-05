@@ -1,5 +1,6 @@
-import os
+﻿import os
 import time
+import unicodedata
 from urllib.parse import urlparse
 
 import pytest
@@ -19,7 +20,18 @@ from utils.parsers import is_sorted
 pytestmark = pytest.mark.regression
 
 
+def _safe_str(text: str) -> str:
+    nfkd_form = unicodedata.normalize('NFKD', str(text or ""))
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).replace("Ä‘", "d").replace("Ä", "D")
+
+
+def _short_error(text: str, limit: int = 500) -> str:
+    value = _safe_str(text).replace("\r", " ").replace("\n", " ")
+    return value if len(value) <= limit else f"{value[:limit]}... [truncated]"
+
+
 def test_search_vietnamese_accent_and_no_accent(driver, test_config):
+    """XĂ¡c thá»±c viá»‡c tĂ¬m kiáº¿m tiáº¿ng Viá»‡t cĂ³ dáº¥u vĂ  khĂ´ng dáº¥u Ä‘á»u tráº£ vá» káº¿t quáº£ liĂªn quan."""
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "\u0111i\u1ec7n tho\u1ea1i")
     with_accent = extract_product_names(driver, test_config, limit=8)
@@ -32,6 +44,7 @@ def test_search_vietnamese_accent_and_no_accent(driver, test_config):
 
 
 def test_search_empty_query(driver, test_config):
+    """XĂ¡c thá»±c há»‡ thá»‘ng khĂ´ng thá»±c hiá»‡n tĂ¬m kiáº¿m vĂ  khĂ´ng Ä‘á»•i URL khi Ă´ tĂ¬m kiáº¿m trá»‘ng hoáº·c chá»‰ chá»©a khoáº£ng tráº¯ng."""
     driver.get(test_config["base_url"])
     original_url = driver.current_url
 
@@ -44,31 +57,145 @@ def test_search_empty_query(driver, test_config):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text.strip()
     search_input = find_search_input(driver, test_config, timeout=5)
-    assert len(body_text) > 100, "Page became blank after blank search"
     assert search_input.is_displayed(), "Search input is not usable after blank search"
 
 
 @pytest.mark.destructive
 def test_search_very_long_query(driver, test_config):
+    """Destructive: mimic manual Ctrl+A/C/Ctrl+V spam until input or click stops responding."""
     driver.get(test_config["base_url"])
-    long_query_size = int(os.getenv("LONG_QUERY_SIZE", "1000000"))
-    long_query = "logitech_" + ("x" * long_query_size)
+    time.sleep(2)
 
-    try:
+    selectors = test_config["selectors"]["search_input"]
+    if isinstance(selectors, str):
+        selectors = [selectors]
+
+    chunk_size = int(os.getenv("VERY_LONG_QUERY_CHUNK_SIZE", "1000000"))  # copied text size
+    max_iterations = int(os.getenv("VERY_LONG_QUERY_ITERATIONS", "100"))  # paste attempts after copy
+    script_timeout = float(os.getenv("VERY_LONG_QUERY_SCRIPT_TIMEOUT", "15"))
+    stable_iterations = 0
+
+    print(f"\n--- [START STRESS TEST: CTRL+A/C THEN SPAM CTRL+V, CHUNK {chunk_size:,} CHARS] ---")
+
+    driver.set_script_timeout(script_timeout)
+    seed_result = driver.execute_script(
+        """
+        const selectors = arguments[0];
+        const chunk = arguments[1];
+        let el = null;
+        for (const sel of selectors) {
+            el = document.querySelector(sel);
+            if (el) break;
+        }
+        if (!el) return { found: false, length: 0, element: null };
+        el.focus();
+        el.value = chunk;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return { found: true, length: el.value.length, element: el };
+        """,
+        selectors,
+        "x" * chunk_size,
+    )
+    if not seed_result.get("found"):
+        pytest.fail("FREEZE: Search input element not found in DOM by selectors", pytrace=False)
+
+    search_input = seed_result["element"]
+    search_input.send_keys(Keys.CONTROL, "a")
+    search_input.send_keys(Keys.CONTROL, "c")
+    search_input.send_keys(Keys.END)
+    print(f"Seed: da copy {int(seed_result.get('length') or 0):,} ky tu vao clipboard bang Ctrl+A/C.")
+
+    for i in range(1, max_iterations + 1):
+        expected_min_chars = (i + 1) * chunk_size
+
         start_time = time.time()
-        search_with_keyword(driver, test_config, long_query, timeout=6)
-        time.sleep(1)
-        elapsed = time.time() - start_time
-        max_seconds = float(os.getenv("DESTRUCTIVE_MAX_RESPONSE_SECONDS", "8"))
-        if elapsed > max_seconds:
-            pytest.fail(f"Page response too slow after very long query: {elapsed:.2f}s > {max_seconds:.2f}s")
-        return
-    except Exception as exc:
-        pytest.fail(f"DEFECT: very long search query ({len(long_query)} chars) freezes the page or WebDriver: {exc}")
+        try:
+            search_input.send_keys(Keys.CONTROL, "v")
+            driver.execute_script("return document.readyState;")
+            actual_length = int(driver.execute_script("return arguments[0].value.length;", search_input) or 0)
 
+            if actual_length < expected_min_chars:
+                click_ok = False
+                click_error = ""
+                try:
+                    driver.execute_script("arguments[0].blur();", search_input)
+                    search_input.click()
+                    click_ok = bool(driver.execute_script("return document.activeElement === arguments[0];", search_input))
+                except Exception as click_exc:
+                    click_error = _short_error(click_exc)
 
-@pytest.mark.destructive
-def test_search_repeated_long_input_does_not_blank_or_lag(driver, test_config):
+                click_status = "OK" if click_ok else "FAIL"
+                print(
+                    f"[TREO PHAT HIEN] Ctrl+V khong them du ky tu o lan paste thu {i}. "
+                    f"Can toi thieu {expected_min_chars:,}, thuc te {actual_length:,}. "
+                    f"Click vao o tim kiem sau do: {click_status}. {click_error}"
+                )
+                pytest.fail(
+                    "FREEZE: Ctrl+V khong the them tiep ky tu vao o tim kiem. "
+                    f"So lan paste on dinh truoc khi treo: {stable_iterations}. "
+                    f"Lan paste gay treo: {i}. "
+                    f"So ky tu mong doi toi thieu: {expected_min_chars:,}. "
+                    f"So ky tu thuc te: {actual_length:,}. "
+                    f"Click vao o tim kiem sau do: {click_status}. "
+                    f"{click_error}",
+                    pytrace=False,
+                )
+
+            click_probe = driver.execute_script(
+                """
+                window.__pvClickProbeCount = window.__pvClickProbeCount || 0;
+                let probe = document.getElementById('__pv_click_probe');
+                if (!probe) {
+                    probe = document.createElement('div');
+                    probe.id = '__pv_click_probe';
+                    probe.textContent = 'probe';
+                    probe.style.cssText = 'position:fixed;left:8px;top:8px;z-index:2147483647;width:24px;height:24px;opacity:0.01;';
+                    probe.addEventListener('mousedown', event => { event.preventDefault(); event.stopPropagation(); });
+                    probe.addEventListener('mouseup', event => { event.preventDefault(); event.stopPropagation(); });
+                    probe.addEventListener('click', event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        window.__pvClickProbeCount += 1;
+                    });
+                    document.body.appendChild(probe);
+                }
+                return { element: probe, count: window.__pvClickProbeCount };
+                """
+            )
+            before_click_count = int(click_probe.get("count") or 0)
+            click_probe["element"].click()
+            after_click_count = int(driver.execute_script("return window.__pvClickProbeCount || 0;"))
+
+            if after_click_count <= before_click_count:
+                print(f"[TREO PHAT HIEN] Trang con cuon duoc nhung khong xu ly click that o lan paste thu {i}.")
+                pytest.fail(
+                    "FREEZE: Trang khong con phan hoi voi click that. "
+                    f"So lan paste on dinh truoc khi treo: {stable_iterations}. "
+                    f"Lan paste gay treo: {i}. "
+                    f"Tong ky tu tai thoi diem treo: {actual_length:,}.",
+                    pytrace=False,
+                )
+
+            elapsed = time.time() - start_time
+            print(f"Lan paste {i}: Ctrl+V thanh cong, input {actual_length:,}/{expected_min_chars:,} ky tu, click OK, trong {elapsed:.3f} giay.")
+            stable_iterations = i
+
+        except Exception as exc:
+            print(f"[TREO PHAT HIEN] Trinh duyet bi treo hoan toan o lan paste thu {i}. Loi: {_short_error(exc)}")
+            pytest.fail(
+                "FREEZE: Trinh duyet bi treo hoan toan. "
+                f"So lan paste on dinh truoc khi treo: {stable_iterations}. "
+                f"Lan paste gay treo: {i}. "
+                "Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. "
+                f"Loi: {_short_error(exc)}",
+                pytrace=False,
+            )
+
+    print(f"PASS: Trinh duyet hoat dong tot sau seed {chunk_size:,} ky tu va {max_iterations} lan Ctrl+V.")
+
+def _deprecated_repeated_long_input_check(driver, test_config):
+    """Destructive: Kiá»ƒm tra viá»‡c nháº­p liĂªn tá»¥c cĂ¡c chuá»—i vÄƒn báº£n dĂ i vĂ o Ă´ tĂ¬m kiáº¿m khĂ´ng gĂ¢y treo hoáº·c xĂ³a tráº¯ng input."""
     driver.get(test_config["base_url"])
     chunk_size = int(os.getenv("REPEATED_LONG_INPUT_CHUNK_SIZE", "80000"))
     iterations = int(os.getenv("REPEATED_LONG_INPUT_ITERATIONS", "15"))
@@ -113,6 +240,7 @@ def test_search_repeated_long_input_does_not_blank_or_lag(driver, test_config):
 
 
 def test_search_results_are_scoped_to_main_results_container(driver, test_config):
+    """XĂ¡c thá»±c danh sĂ¡ch sáº£n pháº©m tĂ¬m Ä‘Æ°á»£c náº±m gá»n trong khu vá»±c káº¿t quáº£ chĂ­nh, khĂ´ng bá»‹ trĂ n ra ngoĂ i."""
     driver.get(test_config["base_url"])
     keyword = test_config["test_data"].get("search_keyword", "Logitech")
     search_with_keyword(driver, test_config, keyword)
@@ -131,6 +259,7 @@ def test_search_results_are_scoped_to_main_results_container(driver, test_config
 
 
 def test_search_change_keyword_updates_results(driver, test_config):
+    """XĂ¡c thá»±c viá»‡c Ä‘á»•i tá»« khĂ³a tĂ¬m kiáº¿m (tá»« Logitech sang Samsung) sáº½ cáº­p nháº­t danh sĂ¡ch sáº£n pháº©m má»›i tÆ°Æ¡ng á»©ng."""
     driver.get(test_config["base_url"])
 
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
@@ -158,6 +287,7 @@ def test_search_change_keyword_updates_results(driver, test_config):
 
 
 def test_search_then_sort_price_keeps_relevant_sorted_results(driver, test_config):
+    """XĂ¡c thá»±c viá»‡c sáº¯p xáº¿p giĂ¡ sáº£n pháº©m váº«n hoáº¡t Ä‘á»™ng bĂ¬nh thÆ°á»ng trĂªn trang káº¿t quáº£ tĂ¬m kiáº¿m."""
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
 

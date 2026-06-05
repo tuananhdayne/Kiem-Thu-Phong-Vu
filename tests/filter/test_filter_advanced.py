@@ -1,5 +1,6 @@
 import pytest
 import time
+import unicodedata
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -11,6 +12,11 @@ from pages.catalog_page import (
 )
 
 pytestmark = pytest.mark.slow
+
+
+def _safe_str(text: str) -> str:
+    nfkd_form = unicodedata.normalize('NFKD', str(text or ""))
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).replace("đ", "d").replace("Đ", "D")
 
 
 def _visible_filter_label_texts(driver, timeout=8):
@@ -40,10 +46,17 @@ def test_filter_all_products_match_brand(driver, test_config):
     wait = WebDriverWait(driver, 25)
 
     old_names = extract_product_names(driver, test_config, limit=20)
+    print("\n--- [FILTER ADVANCED TEST: BEFORE BRAND FILTER] ---")
+    for i, name in enumerate(old_names[:5], 1):
+        print(f"{i}. {_safe_str(name)}")
+
     click_checkbox_by_text(driver, brand)
     wait.until(lambda d: "brands=apple" in d.current_url.lower())
 
     new_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=30)
+    print("\n--- [FILTER ADVANCED TEST: AFTER BRAND FILTER] ---")
+    for i, name in enumerate(new_names[:5], 1):
+        print(f"{i}. {_safe_str(name)}")
 
     assert new_names != old_names, "Danh sách sản phẩm không thay đổi sau khi áp dụng filter"
     
@@ -68,6 +81,10 @@ def test_unfilter_restores_list(driver, test_config):
     wait.until(lambda d: "brands=apple" not in d.current_url.lower())
 
     restored = extract_product_names(driver, test_config, limit=20)
+    print("\n--- [FILTER ADVANCED TEST: RESTORED LIST AFTER UNFILTER] ---")
+    for i, name in enumerate(restored[:5], 1):
+        print(f"{i}. {_safe_str(name)}")
+
     assert restored, "Danh sách sản phẩm sau khi bỏ lọc rỗng"
     brand_mapping = test_config.get("test_data", {}).get("brand_match_keywords", {})
     match_keywords = [k.lower() for k in brand_mapping.get(brand, [brand.lower()])]
@@ -88,6 +105,8 @@ def test_filter_combination_no_results(driver, test_config):
     search_with_keyword(driver, test_config, nonsense)
 
     body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
+    print("\n--- [FILTER ADVANCED TEST: COMBINATION NO RESULTS] ---")
+    print(f"Searched: {_safe_str(nonsense)} under brand {_safe_str(brand)}. Text found: 'khong tim thay san pham nao'")
     assert "không tìm thấy sản phẩm nào" in body_text, "Không hiển thị thông báo no-result sau khi lọc + search"
 
 
@@ -107,6 +126,9 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
     click_checkbox_by_text(driver, first_label)
     click_checkbox_by_text(driver, second_label)
     combined_names = wait_products_updated(driver, test_config, old_names, timeout=12)
+    print(f"\n--- [FILTER ADVANCED TEST: MULTI-FILTER ({_safe_str(first_label)} + {_safe_str(second_label)})] ---")
+    for i, name in enumerate(combined_names[:5], 1):
+        print(f"{i}. {_safe_str(name)}")
 
     assert combined_names, "Không có sản phẩm sau khi áp dụng 2 filter"
     assert combined_names != old_names, "Danh sách không thay đổi sau khi áp dụng 2 filter"
@@ -119,6 +141,10 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
         if updated_names and updated_names != combined_names:
             break
         time.sleep(0.3)
+
+    print(f"\n--- [FILTER ADVANCED TEST: REMOVED ONE FILTER ({_safe_str(first_label)} removed, keeping {_safe_str(second_label)})] ---")
+    for i, name in enumerate(updated_names[:5], 1):
+        print(f"{i}. {_safe_str(name)}")
 
     assert updated_names, "Không có sản phẩm sau khi bỏ một filter"
     assert updated_names != combined_names, "Danh sách không đổi sau khi bỏ một filter"

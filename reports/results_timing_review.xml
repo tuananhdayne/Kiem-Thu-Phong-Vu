@@ -1,0 +1,1046 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="47" time="390.933" timestamp="2026-06-04T16:28:21.905692+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_functional" name="test_search_autocomplete_suggestion_click_navigates_to_results" time="84.175" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="107.596" /><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="51.276"><failure message="urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=57096): Read timed out. (read timeout=30)">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000002158EF10050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=57096) at 0x2158ef10440&gt;
+method = 'POST', url = '/session/84e0ab508a1367e330b064ab381fa9e6/execute/sync'
+body = '{"script": "/* isDisplayed */return ((function () {\\n    var tagNameDescriptor = Object.getOwnPropertyDescriptor(Ele..."element-6066-11e4-a52e-4f735466cecf": "f.5A101434F7B9D5EA77D55B0528FA1C19.d.910C92B768E51D9A7C4B5BC997B5A834.e.44"}]}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x000002158D93B6D0&gt;
+b = &lt;memory at 0x000002158DAAE140&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="84e0ab508a1367e330b064ab381fa9e6")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_search_vietnamese_accent_and_no_accent(driver, test_config):
+        """Xác thực việc tìm kiếm tiếng Việt có dấu và không dấu đều trả về kết quả liên quan."""
+        driver.get(test_config["base_url"])
+&gt;       search_with_keyword(driver, test_config, "\u0111i\u1ec7n tho\u1ea1i")
+
+tests\search\test_search_regression.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:311: in search_with_keyword
+    search_input = find_search_input(driver, config, timeout=timeout)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\catalog_page.py:298: in find_search_input
+    return first_visible(driver, config["selectors"]["search_input"], timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\base_page.py:41: in first_visible
+    raise last_exc
+pages\base_page.py:32: in first_visible
+    if element.is_displayed():
+       ^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:308: in is_displayed
+    return self.parent.execute_script(f"/* isDisplayed */return ({isDisplayed_js}).apply(null, arguments);", self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:578: in execute_script
+    return self.execute(command, {"script": script, "args": converted_args})["value"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x000002158EF10050&gt;
+err = TimeoutError('timed out')
+url = '/session/84e0ab508a1367e330b064ab381fa9e6/execute/sync'
+timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=57096): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError</failure></testcase><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="53.832"><failure message="Failed: FREEZE: Trinh duyet bi lag/treo o lan lap thu 2 voi 2,000,000 ky tu. Thoi gian xu ly: 5.42s">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="dbbe2b505559d91ddfc92bffb32a33f9")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    @pytest.mark.destructive
+    def test_search_very_long_query(driver, test_config):
+        """Destructive: Nhập liên tục (spam) mỗi lần 1M ký tự vào ô tìm kiếm cho đến khi trình duyệt bị treo, ghi nhận số lần lặp."""
+        driver.get(test_config["base_url"])
+        # Chờ trang load ổn định một chút
+        time.sleep(2)
+    
+        selectors = test_config["selectors"]["search_input"]
+        if isinstance(selectors, str):
+            selectors = [selectors]
+    
+        chunk_size = 1000000  # 1M ký tự mỗi lần
+        max_iterations = 20  # Giới hạn tối đa 20 lần lặp (20 triệu ký tự) để tránh treo vĩnh viễn máy test
+    
+        print("\n--- [START STRESS TEST: SPAM 1M CHARS ITERATIVELY] ---")
+    
+        for i in range(1, max_iterations + 1):
+            chunk = "x" * chunk_size
+            total_chars = i * chunk_size
+    
+            start_time = time.time()
+            try:
+                # Thiết lập script timeout nhỏ để nếu đơ là bắt được ngay
+                driver.set_script_timeout(3.0)
+    
+                # Chèn 100k ký tự trực tiếp bằng JS dựa trên các selector
+                success = driver.execute_script(
+                    """
+                    const selectors = arguments[0];
+                    const chunk = arguments[1];
+                    let el = null;
+                    for (const sel of selectors) {
+                        el = document.querySelector(sel);
+                        if (el) break;
+                    }
+                    if (el) {
+                        el.focus();
+                        el.value = (el.value || '') + chunk;
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                        return true;
+                    }
+                    return false;
+                    """,
+                    selectors,
+                    chunk
+                )
+    
+                if not success:
+                    raise Exception("Search input element not found in DOM by selectors")
+    
+                # Kiểm tra khả năng phản hồi của trình duyệt bằng một lệnh JS đơn giản
+                driver.execute_script("return document.readyState;")
+    
+                elapsed = time.time() - start_time
+                print(f"Lan lap {i}: Nhap thanh cong {total_chars:,} ky tu trong {elapsed:.3f} giay.")
+    
+                # Nếu thời gian phản hồi quá chậm (&gt; 5.0 giây), coi như đã bị lag/treo nghiêm trọng
+                if elapsed &gt; 5.0:
+                    print(f"[TREO PHAT HIEN] Trinh duyet bi lag/treo o lan lap thu {i} ({total_chars:,} ky tu), thoi gian: {elapsed:.3f}s")
+&gt;                   pytest.fail(f"FREEZE: Trinh duyet bi lag/treo o lan lap thu {i} voi {total_chars:,} ky tu. Thoi gian xu ly: {elapsed:.2f}s")
+E                   Failed: FREEZE: Trinh duyet bi lag/treo o lan lap thu 2 voi 2,000,000 ky tu. Thoi gian xu ly: 5.42s
+
+tests\search\test_search_regression.py:118: Failed</failure></testcase><testcase classname="tests.search.test_search_regression" name="test_search_results_are_scoped_to_main_results_container" time="90.683" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="66.838"><failure message="selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame&#10;  (Session info: chrome=148.0.7778.217); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception&#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902d7de5+14895]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902d7e50+14900]&#10;&#09;chromedriver!(No symbol) [0x7ff79003d5ad]&#10;&#09;chromedriver!(No symbol) [0x7ff790045521]&#10;&#09;chromedriver!(No symbol) [0x7ff79004897f]&#10;&#09;chromedriver!(No symbol) [0x7ff7900e5c7d]&#10;&#09;chromedriver!(No symbol) [0x7ff7900c005a]&#10;&#09;chromedriver!(No symbol) [0x7ff7900e486f]&#10;&#09;chromedriver!(No symbol) [0x7ff790089df8]&#10;&#09;chromedriver!(No symbol) [0x7ff79008ace3]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7905ecc49+3296f9]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7905e7375+323e25]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff79060bc82+348732]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902f6045+32af5]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902fecec+3b79c]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902e1bc4+1e674]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902e1d54+1e804]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902c60e7+2b97]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]&#10;&#09;ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]">self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000116D8EB8050&gt;
+conn = &lt;HTTPConnection(host='localhost', port=57098) at 0x116d8eb8440&gt;
+method = 'POST'
+url = '/session/b461dd2e338c8d0782a82182503df978/element/f.14982C94010E434E29A479D9D2176098.d.57750940F8F7C3C9DF2FD44EAE99120E.e.79/click'
+body = '{}'
+headers = HTTPHeaderDict({'Accept': 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'User-Agent': 'selenium/4.44.0 (python win32)', 'Connection': 'keep-alive'})
+retries = Retry(total=3, connect=None, read=None, redirect=None, status=None)
+timeout = Timeout(connect=30, read=30, total=None), chunked = False
+response_conn = None, preload_content = True, decode_content = True
+enforce_content_length = True
+
+    def _make_request(
+        self,
+        conn: BaseHTTPConnection,
+        method: str,
+        url: str,
+        body: _TYPE_BODY | None = None,
+        headers: typing.Mapping[str, str] | None = None,
+        retries: Retry | None = None,
+        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,
+        chunked: bool = False,
+        response_conn: BaseHTTPConnection | None = None,
+        preload_content: bool = True,
+        decode_content: bool = True,
+        enforce_content_length: bool = True,
+    ) -&gt; BaseHTTPResponse:
+        """
+        Perform a request on a given urllib connection object taken from our
+        pool.
+    
+        :param conn:
+            a connection from one of our connection pools
+    
+        :param method:
+            HTTP request method (such as GET, POST, PUT, etc.)
+    
+        :param url:
+            The URL to perform the request on.
+    
+        :param body:
+            Data to send in the request body, either :class:`str`, :class:`bytes`,
+            an iterable of :class:`str`/:class:`bytes`, or a file-like object.
+    
+        :param headers:
+            Dictionary of custom headers to send, such as User-Agent,
+            If-None-Match, etc. If None, pool headers are used. If provided,
+            these headers completely replace any pool-specific headers.
+    
+        :param retries:
+            Configure the number of retries to allow before raising a
+            :class:`~urllib3.exceptions.MaxRetryError` exception.
+    
+            Pass ``None`` to retry until you receive a response. Pass a
+            :class:`~urllib3.util.retry.Retry` object for fine-grained control
+            over different types of retries.
+            Pass an integer number to retry connection errors that many times,
+            but no other types of errors. Pass zero to never retry.
+    
+            If ``False``, then retries are disabled and any exception is raised
+            immediately. Also, instead of raising a MaxRetryError on redirects,
+            the redirect response will be returned.
+    
+        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.
+    
+        :param timeout:
+            If specified, overrides the default timeout for this one
+            request. It may be a float (in seconds) or an instance of
+            :class:`urllib3.util.Timeout`.
+    
+        :param chunked:
+            If True, urllib3 will send the body using chunked transfer
+            encoding. Otherwise, urllib3 will send the body using the standard
+            content-length form. Defaults to False.
+    
+        :param response_conn:
+            Set this to ``None`` if you will handle releasing the connection or
+            set the connection to have the response release it.
+    
+        :param preload_content:
+          If True, the response's body will be preloaded during construction.
+    
+        :param decode_content:
+            If True, will attempt to decode the body based on the
+            'content-encoding' header.
+    
+        :param enforce_content_length:
+            Enforce content length checking. Body returned by server must match
+            value of Content-Length header, if present. Otherwise, raise error.
+        """
+        self.num_requests += 1
+    
+        timeout_obj = self._get_timeout(timeout)
+        timeout_obj.start_connect()
+        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)
+    
+        try:
+            # Trigger any extra validation we need to do.
+            try:
+                self._validate_conn(conn)
+            except (SocketTimeout, BaseSSLError) as e:
+                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)
+                raise
+    
+        # _validate_conn() starts the connection to an HTTPS proxy
+        # so we need to wrap errors with 'ProxyError' here too.
+        except (
+            OSError,
+            NewConnectionError,
+            TimeoutError,
+            BaseSSLError,
+            CertificateError,
+            SSLError,
+        ) as e:
+            new_e: Exception = e
+            if isinstance(e, (BaseSSLError, CertificateError)):
+                new_e = SSLError(e)
+            # If the connection didn't successfully connect to it's proxy
+            # then there
+            if isinstance(
+                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)
+            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):
+                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+            raise new_e
+    
+        # conn.request() calls http.client.*.request, not the method in
+        # urllib3.request. It also calls makefile (recv) on the socket.
+        try:
+            conn.request(
+                method,
+                url,
+                body=body,
+                headers=headers,
+                chunked=chunked,
+                preload_content=preload_content,
+                decode_content=decode_content,
+                enforce_content_length=enforce_content_length,
+            )
+    
+        # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
+        # legitimately able to close the connection after sending a valid response.
+        # With this behaviour, the received response is still readable.
+        except BrokenPipeError:
+            pass
+        except OSError as e:
+            # MacOS/Linux
+            # EPROTOTYPE and ECONNRESET are needed on macOS
+            # https://erickt.github.io/blog/2014/11/19/adventures-in-debugging-a-potential-osx-kernel-bug/
+            # Condition changed later to emit ECONNRESET instead of only EPROTOTYPE.
+            if e.errno != errno.EPROTOTYPE and e.errno != errno.ECONNRESET:
+                raise
+    
+        # Reset the timeout for the recv() on the socket
+        read_timeout = timeout_obj.read_timeout
+    
+        if not conn.is_closed:
+            # In Python 3 socket.py will catch EAGAIN and return None when you
+            # try and read into the file pointer created by http.client, which
+            # instead raises a BadStatusLine exception. Instead of catching
+            # the exception and assuming all BadStatusLine exceptions are read
+            # timeouts, check for a zero timeout before making the request.
+            if read_timeout == 0:
+                raise ReadTimeoutError(
+                    self, url, f"Read timed out. (read timeout={read_timeout})"
+                )
+            conn.timeout = read_timeout
+    
+        # Receive the response from the server
+        try:
+&gt;           response = conn.getresponse()
+                       ^^^^^^^^^^^^^^^^^^
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:534: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\urllib3\connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:1430: in getresponse
+    response.begin()
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:331: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\http\client.py:292: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;socket.SocketIO object at 0x00000116D8C287C0&gt;
+b = &lt;memory at 0x00000116D8A1E680&gt;
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+&gt;           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+C:\Users\84867\AppData\Local\Programs\Python\Python314\Lib\socket.py:725: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="b461dd2e338c8d0782a82182503df978")&gt;
+checkbox_text = 'Apple', timeout = 10
+
+    def click_checkbox_by_text(driver, checkbox_text, timeout=10):
+        """Click a visible checkbox or checkbox label by display text."""
+        logger.info("Clicking filter checkbox: %s", checkbox_text)
+        checkbox_xpath = (
+            f"//label[contains(@class, 'check-box') and contains(., '{checkbox_text}')]//input[@type='checkbox']"
+            f" | //input[@type='checkbox' and @aria-label='{checkbox_text}']"
+            f" | //label[contains(., '{checkbox_text}')]//input[@type='checkbox']"
+        )
+    
+        start_time = time.time()
+        checkbox = None
+        while time.time() - start_time &lt; timeout:
+            try:
+                elements = driver.find_elements(By.XPATH, checkbox_xpath)
+                for element in elements:
+                    if element.is_displayed():
+                        checkbox = element
+                        break
+                if checkbox:
+                    break
+            except Exception:
+                pass
+            time.sleep(0.2)
+    
+        if not checkbox:
+            try:
+                elements = driver.find_elements(By.CSS_SELECTOR, "label.check-box")
+                for element in elements:
+                    if element.is_displayed() and checkbox_text.lower() in element.text.lower():
+                        checkbox = element
+                        break
+            except Exception:
+                pass
+    
+        if not checkbox:
+            try:
+                elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{checkbox_text}')]")
+                for element in elements:
+                    if not element.is_displayed():
+                        continue
+                    tag_name = element.tag_name.upper()
+                    if tag_name == "A" or element.find_elements(By.XPATH, "./ancestor::a"):
+                        continue
+                    checkbox = element
+                    break
+            except Exception:
+                pass
+    
+        if not checkbox:
+            raise Exception(f"Could not find checkbox or label containing: {checkbox_text}")
+    
+        try:
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
+            time.sleep(0.2)
+&gt;           checkbox.click()
+
+pages\catalog_page.py:463: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:114: in click
+    self._execute(Command.CLICK_ELEMENT)
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:508: in _execute
+    return self._parent.execute(command, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:465: in execute
+    response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:407: in execute
+    return self._request(command_info[0], url, body=data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\remote_connection.py:431: in _request
+    response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\_request_methods.py:143: in request
+    return self.request_encode_body(
+.venv\Lib\site-packages\urllib3\_request_methods.py:278: in request_encode_body
+    return self.urlopen(method, url, **extra_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\poolmanager.py:457: in urlopen
+    response = conn.urlopen(method, u.request_uri, **kw)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\connectionpool.py:842: in urlopen
+    retries = retries.increment(
+.venv\Lib\site-packages\urllib3\util\retry.py:498: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\urllib3\util\util.py:39: in reraise
+    raise value
+.venv\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+.venv\Lib\site-packages\urllib3\connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;urllib3.connectionpool.HTTPConnectionPool object at 0x00000116D8EB8050&gt;
+err = TimeoutError('timed out')
+url = '/session/b461dd2e338c8d0782a82182503df978/element/f.14982C94010E434E29A479D9D2176098.d.57750940F8F7C3C9DF2FD44EAE99120E.e.79/click'
+timeout_value = 30
+
+    def _raise_timeout(
+        self,
+        err: BaseSSLError | OSError | SocketTimeout,
+        url: str,
+        timeout_value: _TYPE_TIMEOUT | None,
+    ) -&gt; None:
+        """Is the error actually a timeout? Will raise a ReadTimeout or pass"""
+    
+        if isinstance(err, SocketTimeout):
+&gt;           raise ReadTimeoutError(
+                self, url, f"Read timed out. (read timeout={timeout_value})"
+            ) from err
+E           urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=57098): Read timed out. (read timeout=30)
+
+.venv\Lib\site-packages\urllib3\connectionpool.py:367: ReadTimeoutError
+
+During handling of the above exception, another exception occurred:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="b461dd2e338c8d0782a82182503df978")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_filter_combination_no_results(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+        nonsense = test_config["test_data"].get("nonexistent_search", "noresults_xyz_98765")
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 25)
+    
+&gt;       click_checkbox_by_text(driver, brand)
+
+tests\filter\test_filter_advanced.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:465: in click_checkbox_by_text
+    driver.execute_script("arguments[0].click();", checkbox)
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:578: in execute_script
+    return self.execute(command, {"script": script, "args": converted_args})["value"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:468: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000116D8C0F380&gt;
+response = {'status': 404, 'value': '{"value":{"error":"stale element reference","message":"stale element reference: stale elemen...7+2b97]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]\\n\\tntdll!RtlUserThreadStart [0x7ff8a890427c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -&gt; None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "&lt;anonymous&gt;")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "&lt;anonymous&gt;")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+&gt;       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame
+E         (Session info: chrome=148.0.7778.217); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff7902d7de5+14895]
+E       	chromedriver!GetHandleVerifier [0x7ff7902d7e50+14900]
+E       	chromedriver!(No symbol) [0x7ff79003d5ad]
+E       	chromedriver!(No symbol) [0x7ff790045521]
+E       	chromedriver!(No symbol) [0x7ff79004897f]
+E       	chromedriver!(No symbol) [0x7ff7900e5c7d]
+E       	chromedriver!(No symbol) [0x7ff7900c005a]
+E       	chromedriver!(No symbol) [0x7ff7900e486f]
+E       	chromedriver!(No symbol) [0x7ff790089df8]
+E       	chromedriver!(No symbol) [0x7ff79008ace3]
+E       	chromedriver!GetHandleVerifier [0x7ff7905ecc49+3296f9]
+E       	chromedriver!GetHandleVerifier [0x7ff7905e7375+323e25]
+E       	chromedriver!GetHandleVerifier [0x7ff79060bc82+348732]
+E       	chromedriver!GetHandleVerifier [0x7ff7902f6045+32af5]
+E       	chromedriver!GetHandleVerifier [0x7ff7902fecec+3b79c]
+E       	chromedriver!GetHandleVerifier [0x7ff7902e1bc4+1e674]
+E       	chromedriver!GetHandleVerifier [0x7ff7902e1d54+1e804]
+E       	chromedriver!GetHandleVerifier [0x7ff7902c60e7+2b97]
+E       	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+E       	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+.venv\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: StaleElementReferenceException</failure></testcase><testcase classname="tests.search.test_search_regression" name="test_search_then_sort_price_keeps_relevant_sorted_results" time="102.688" /><testcase classname="tests.search.test_search_functional" name="test_search_load_more_preserves_keyword" time="102.208" /><testcase classname="tests.search.test_search_regression" name="test_search_empty_query" time="19.271" /><testcase classname="tests.search.test_search_regression" name="test_search_repeated_long_input_does_not_blank_or_lag" time="93.587"><failure message="Failed: DEFECT: repeated long input blanks the search box or makes the page lag: Message: stale element reference: stale element not found in the current frame&#10;  (Session info: chrome=148.0.7778.217); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception&#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902d7de5+14895]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902d7e50+14900]&#10;&#09;chromedriver!(No symbol) [0x7ff79003d5ad]&#10;&#09;chromedriver!(No symbol) [0x7ff790045521]&#10;&#09;chromedriver!(No symbol) [0x7ff79004897f]&#10;&#09;chromedriver!(No symbol) [0x7ff7900e5c7d]&#10;&#09;chromedriver!(No symbol) [0x7ff7900c005a]&#10;&#09;chromedriver!(No symbol) [0x7ff7900e486f]&#10;&#09;chromedriver!(No symbol) [0x7ff790089df8]&#10;&#09;chromedriver!(No symbol) [0x7ff79008ace3]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7905ecc49+3296f9]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7905e7375+323e25]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff79060bc82+348732]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902f6045+32af5]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902fecec+3b79c]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902e1bc4+1e674]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902e1d54+1e804]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7902c60e7+2b97]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]&#10;&#09;ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="c60e3e02f8d24b711f3b35fb75c5d142")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    @pytest.mark.destructive
+    def test_search_repeated_long_input_does_not_blank_or_lag(driver, test_config):
+        """Destructive: Kiểm tra việc nhập liên tục các chuỗi văn bản dài vào ô tìm kiếm không gây treo hoặc xóa trắng input."""
+        driver.get(test_config["base_url"])
+        chunk_size = int(os.getenv("REPEATED_LONG_INPUT_CHUNK_SIZE", "80000"))
+        iterations = int(os.getenv("REPEATED_LONG_INPUT_ITERATIONS", "15"))
+        chunk = "logitech_" + ("x" * chunk_size)
+        expected_min_length = 0
+    
+        try:
+&gt;           search_input = find_search_input(driver, test_config, timeout=6)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\search\test_search_regression.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:298: in find_search_input
+    return first_visible(driver, config["selectors"]["search_input"], timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\base_page.py:41: in first_visible
+    raise last_exc
+pages\base_page.py:32: in first_visible
+    if element.is_displayed():
+       ^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:308: in is_displayed
+    return self.parent.execute_script(f"/* isDisplayed */return ({isDisplayed_js}).apply(null, arguments);", self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:578: in execute_script
+    return self.execute(command, {"script": script, "args": converted_args})["value"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:468: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000019A1FA12990&gt;
+response = {'status': 404, 'value': '{"value":{"error":"stale element reference","message":"stale element reference: stale elemen...7+2b97]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]\\n\\tntdll!RtlUserThreadStart [0x7ff8a890427c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -&gt; None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "&lt;anonymous&gt;")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "&lt;anonymous&gt;")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+&gt;       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame
+E         (Session info: chrome=148.0.7778.217); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff7902d7de5+14895]
+E       	chromedriver!GetHandleVerifier [0x7ff7902d7e50+14900]
+E       	chromedriver!(No symbol) [0x7ff79003d5ad]
+E       	chromedriver!(No symbol) [0x7ff790045521]
+E       	chromedriver!(No symbol) [0x7ff79004897f]
+E       	chromedriver!(No symbol) [0x7ff7900e5c7d]
+E       	chromedriver!(No symbol) [0x7ff7900c005a]
+E       	chromedriver!(No symbol) [0x7ff7900e486f]
+E       	chromedriver!(No symbol) [0x7ff790089df8]
+E       	chromedriver!(No symbol) [0x7ff79008ace3]
+E       	chromedriver!GetHandleVerifier [0x7ff7905ecc49+3296f9]
+E       	chromedriver!GetHandleVerifier [0x7ff7905e7375+323e25]
+E       	chromedriver!GetHandleVerifier [0x7ff79060bc82+348732]
+E       	chromedriver!GetHandleVerifier [0x7ff7902f6045+32af5]
+E       	chromedriver!GetHandleVerifier [0x7ff7902fecec+3b79c]
+E       	chromedriver!GetHandleVerifier [0x7ff7902e1bc4+1e674]
+E       	chromedriver!GetHandleVerifier [0x7ff7902e1d54+1e804]
+E       	chromedriver!GetHandleVerifier [0x7ff7902c60e7+2b97]
+E       	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+E       	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+.venv\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: StaleElementReferenceException
+
+During handling of the above exception, another exception occurred:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="c60e3e02f8d24b711f3b35fb75c5d142")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    @pytest.mark.destructive
+    def test_search_repeated_long_input_does_not_blank_or_lag(driver, test_config):
+        """Destructive: Kiểm tra việc nhập liên tục các chuỗi văn bản dài vào ô tìm kiếm không gây treo hoặc xóa trắng input."""
+        driver.get(test_config["base_url"])
+        chunk_size = int(os.getenv("REPEATED_LONG_INPUT_CHUNK_SIZE", "80000"))
+        iterations = int(os.getenv("REPEATED_LONG_INPUT_ITERATIONS", "15"))
+        chunk = "logitech_" + ("x" * chunk_size)
+        expected_min_length = 0
+    
+        try:
+            search_input = find_search_input(driver, test_config, timeout=6)
+            driver.execute_script("arguments[0].focus(); arguments[0].value = '';", search_input)
+    
+            for index in range(iterations):
+                start_time = time.time()
+                driver.execute_script(
+                    """
+                    const el = arguments[0];
+                    const chunk = arguments[1];
+                    el.focus();
+                    el.value = `${el.value || ''}${chunk}`;
+                    el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: chunk }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    return el.value.length;
+                    """,
+                    search_input,
+                    chunk,
+                )
+                expected_min_length += len(chunk)
+                elapsed = time.time() - start_time
+                max_seconds = float(os.getenv("DESTRUCTIVE_MAX_RESPONSE_SECONDS", "8"))
+                if elapsed &gt; max_seconds:
+                    pytest.fail(f"Page response too slow after repeated long input step {index+1}: {elapsed:.2f}s")
+    
+                search_input = find_search_input(driver, test_config, timeout=2)
+                current_length = driver.execute_script("return arguments[0].value.length", search_input)
+                if current_length == 0:
+                    pytest.fail(f"DEFECT: search box became blank after repeated long input step {index+1}/{iterations}")
+                if current_length &lt; expected_min_length:
+                    pytest.fail(f"DEFECT: search input lost characters after repeated long input step {index+1}/{iterations}: {current_length} &lt; {expected_min_length}")
+    
+            search_input.send_keys(Keys.ENTER)
+        except Exception as exc:
+&gt;           pytest.fail(f"DEFECT: repeated long input blanks the search box or makes the page lag: {exc}")
+E           Failed: DEFECT: repeated long input blanks the search box or makes the page lag: Message: stale element reference: stale element not found in the current frame
+E             (Session info: chrome=148.0.7778.217); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception
+E           Stacktrace:
+E           	chromedriver!GetHandleVerifier [0x7ff7902d7de5+14895]
+E           	chromedriver!GetHandleVerifier [0x7ff7902d7e50+14900]
+E           	chromedriver!(No symbol) [0x7ff79003d5ad]
+E           	chromedriver!(No symbol) [0x7ff790045521]
+E           	chromedriver!(No symbol) [0x7ff79004897f]
+E           	chromedriver!(No symbol) [0x7ff7900e5c7d]
+E           	chromedriver!(No symbol) [0x7ff7900c005a]
+E           	chromedriver!(No symbol) [0x7ff7900e486f]
+E           	chromedriver!(No symbol) [0x7ff790089df8]
+E           	chromedriver!(No symbol) [0x7ff79008ace3]
+E           	chromedriver!GetHandleVerifier [0x7ff7905ecc49+3296f9]
+E           	chromedriver!GetHandleVerifier [0x7ff7905e7375+323e25]
+E           	chromedriver!GetHandleVerifier [0x7ff79060bc82+348732]
+E           	chromedriver!GetHandleVerifier [0x7ff7902f6045+32af5]
+E           	chromedriver!GetHandleVerifier [0x7ff7902fecec+3b79c]
+E           	chromedriver!GetHandleVerifier [0x7ff7902e1bc4+1e674]
+E           	chromedriver!GetHandleVerifier [0x7ff7902e1d54+1e804]
+E           	chromedriver!GetHandleVerifier [0x7ff7902c60e7+2b97]
+E           	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+E           	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+tests\search\test_search_regression.py:171: Failed</failure></testcase><testcase classname="tests.search.test_search_functional" name="test_search_enter_vs_click_icon_same_result" time="49.902" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="196.574" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]" time="32.342" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&quot;&lt;img src=x onerror=alert(1)&gt;]" time="83.420" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="56.290" /><testcase classname="tests.search.test_search_regression" name="test_search_change_keyword_updates_results" time="116.266" /><testcase classname="tests.search.test_search_functional" name="test_search_deeplink_query_loads_correct_results" time="28.150" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely['; DROP TABLE products; --]" time="10.233" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT username,password FROM users --]" time="50.229" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[admin' --]" time="21.488" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech]" time="49.236" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT NULL --]" time="58.383" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech!@#]" time="46.494" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' OR '1'='1]" time="60.441" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[logitech]" time="48.245" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="31.819" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[  Logitech  ]" time="37.299" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitechk]" time="33.959" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[') UNION SELECT NULL,NULL --]" time="42.778" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit3ch]" time="45.379" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit ech]" time="48.457" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logtech]" time="37.678" /><testcase classname="tests.search.test_search_variants" name="test_search_not_found_shows_no_results" time="24.123" /><testcase classname="tests.smoke.test_cases" name="test_sort_price_low_to_high" time="53.535" /><testcase classname="tests.smoke.test_cases" name="test_filter_apple_brand" time="74.081" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="73.659" /><testcase classname="tests.smoke.test_cases" name="test_search_logitech" time="29.314" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_switching_between_sort_types_keeps_results_visible" time="50.686" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_price_orders" time="53.481" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_changes_order_for_non_price_options" time="91.086" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[&quot; OR &quot;1&quot;=&quot;1]" time="10.059" /><testcase classname="tests.test_regression_filter_sort_search" name="test_filter_multiple_conditions" time="73.406" /><testcase classname="tests.test_negative_cases" name="test_missing_selector_raises" time="3.307" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="54.832" /><testcase classname="tests.test_regression_filter_sort_search" name="test_preserve_sort_state_on_reload_and_navigation" time="36.483" /><testcase classname="tests.test_regression_filter_sort_search" name="test_sort_combined_with_filter_and_search" time="68.183" /><testcase classname="tests.test_negative_cases" name="test_slow_page_timeout" time="2.776" /></testsuite></testsuites>

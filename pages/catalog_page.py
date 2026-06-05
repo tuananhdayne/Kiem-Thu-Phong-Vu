@@ -93,23 +93,46 @@ class CatalogPage(BasePage):
         return apply_sort_option(self.driver, option_text, timeout=timeout)
 
 
+def _is_search_result_page(driver):
+    try:
+        current_url = driver.current_url.lower()
+        return "tim-kiem" in current_url or "search" in current_url or "?q=" in current_url
+    except Exception:
+        return False
+
+
+def _elements_from_results_container(driver, config, selectors, timeout=10):
+    results_selectors = config.get("selectors", {}).get("results_container")
+    if not results_selectors:
+        return []
+
+    try:
+        container = first_visible(driver, results_selectors, timeout=timeout)
+        for selector in selectors:
+            elements = container.find_elements(By.CSS_SELECTOR, selector)
+            visible_elements = [element for element in elements if element.is_displayed()]
+            if visible_elements:
+                return visible_elements
+    except Exception:
+        return []
+
+    return []
+
+
 def find_elements_within_results(driver, config, selectors, timeout=10):
     """Find elements inside the main product-results region."""
+    if _is_search_result_page(driver):
+        container_elements = _elements_from_results_container(driver, config, selectors, timeout=min(timeout, 1))
+        if container_elements:
+            return container_elements
+
     scoped_after_sort = _visible_elements_after_sort_bar(driver, selectors, timeout=timeout)
     if scoped_after_sort:
         return scoped_after_sort
 
-    results_selectors = config.get("selectors", {}).get("results_container")
-    if results_selectors:
-        try:
-            container = first_visible(driver, results_selectors, timeout=timeout)
-            for selector in selectors:
-                elements = container.find_elements(By.CSS_SELECTOR, selector)
-                visible_elements = [element for element in elements if element.is_displayed()]
-                if visible_elements:
-                    return visible_elements
-        except Exception:
-            pass
+    container_elements = _elements_from_results_container(driver, config, selectors, timeout=min(timeout, 1))
+    if container_elements:
+        return container_elements
 
     try:
         sort_container = driver.find_element(By.XPATH, "//*[normalize-space()='S\u1eafp x\u1ebfp theo']/parent::*")
@@ -130,12 +153,46 @@ def find_elements_within_results(driver, config, selectors, timeout=10):
     return all_visible(driver, selectors, timeout=timeout)
 
 
-def _visible_elements_after_sort_bar(driver, selectors, timeout=5):
+def sort_elements_by_reading_order(elements_with_coords, tolerance=50.0):
+    """Sort elements by top-to-bottom, left-to-right reading order with a row tolerance."""
+    if not elements_with_coords:
+        return []
+    # Sort primarily by top coordinate
+    sorted_by_top = sorted(elements_with_coords, key=lambda item: item[0])
+    
+    rows = []
+    current_row = []
+    current_row_top = None
+    
+    for item in sorted_by_top:
+        top = item[0]
+        if current_row_top is None:
+            current_row_top = top
+            current_row.append(item)
+        elif top - current_row_top <= tolerance:
+            current_row.append(item)
+        else:
+            # Sort the completed row by left coordinate
+            current_row.sort(key=lambda item: item[1])
+            rows.extend(current_row)
+            # Start a new row
+            current_row = [item]
+            current_row_top = top
+            
+    if current_row:
+        current_row.sort(key=lambda item: item[1])
+        rows.extend(current_row)
+        
+    return [item[2] for item in rows]
+
+
+def _visible_elements_after_sort_bar(driver, selectors, timeout=2):
     """Return listing elements visually below the sort bar, excluding featured blocks above it."""
     end_time = time.time() + timeout
     while time.time() < end_time:
         try:
-            sort_label = _find_sort_label(driver)
+            remaining = max(0.2, min(0.6, end_time - time.time()))
+            sort_label = _find_sort_label(driver, timeout=remaining)
             sort_rect = driver.execute_script(
                 """
                 const rect = arguments[0].getBoundingClientRect();
@@ -169,19 +226,18 @@ def _visible_elements_after_sort_bar(driver, selectors, timeout=5):
                     except Exception:
                         continue
             if matched:
-                matched.sort(key=lambda item: (item[0], item[1]))
-                return [item[2] for item in matched]
+                return sort_elements_by_reading_order(matched)
         except Exception:
             pass
         time.sleep(0.2)
     return []
 
 
-def get_product_name_elements(driver, config):
-    return find_elements_within_results(driver, config, config["selectors"]["product_name"], timeout=3)
+def get_product_name_elements(driver, config, timeout=3):
+    return find_elements_within_results(driver, config, config["selectors"]["product_name"], timeout=timeout)
 
 
-def extract_product_names(driver, config, limit=20):
+def extract_product_names(driver, config, limit=20, timeout=3):
     """Extract unique visible product names from the current listing page."""
     try:
         body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
@@ -193,7 +249,7 @@ def extract_product_names(driver, config, limit=20):
 
     logger.info("Extracting visible product names...")
     names = []
-    for element in get_product_name_elements(driver, config):
+    for element in get_product_name_elements(driver, config, timeout=timeout):
         try:
             text = element.text.strip()
             if text and text not in names:
@@ -206,12 +262,26 @@ def extract_product_names(driver, config, limit=20):
     return names
 
 
-def extract_latest_prices(driver, config, limit=20):
+def extract_latest_prices(driver, config, limit=20, timeout=3):
     """Extract latest product prices from the current listing page."""
     logger.info("Extracting visible product prices...")
-    price_elements = find_elements_within_results(driver, config, config["selectors"]["latest_price"], timeout=3)
+    price_elements = find_elements_within_results(driver, config, config["selectors"]["latest_price"], timeout=timeout)
+    # Normalize reading order by sorting elements by their page position: top then left
+    positioned = []
+    for el in price_elements:
+        try:
+            rect = driver.execute_script(
+                "const r = arguments[0].getBoundingClientRect(); return {top: r.top + window.scrollY, left: r.left + window.scrollX};",
+                el,
+            )
+            positioned.append((float(rect.get("top", 0)), float(rect.get("left", 0)), el))
+        except Exception:
+            positioned.append((float('inf'), float('inf'), el))
+
+    sorted_elements = sort_elements_by_reading_order(positioned)
+
     prices = []
-    for element in price_elements:
+    for element in sorted_elements:
         try:
             price_value = parse_price_to_int(element.text)
             if price_value:
@@ -220,6 +290,7 @@ def extract_latest_prices(driver, config, limit=20):
             pass
         if len(prices) >= limit:
             break
+
     logger.info("Extracted %s prices.", len(prices))
     return prices
 
@@ -236,7 +307,7 @@ def wait_products_updated(driver, config, old_names, target_brand="Apple", timeo
     start_time = time.time()
     end_time = start_time + timeout
     while time.time() < end_time:
-        new_names = extract_product_names(driver, config, limit=10)
+        new_names = extract_product_names(driver, config, limit=10, timeout=0.8)
         brand_count = sum(1 for name in new_names if any(keyword in name.lower() for keyword in keywords))
         if new_names and new_names != old_names and brand_count >= 3:
             logger.info("Product list updated after %.2f seconds.", time.time() - start_time)
@@ -244,7 +315,7 @@ def wait_products_updated(driver, config, old_names, target_brand="Apple", timeo
         time.sleep(0.25)
 
     logger.warning("Timed out waiting for product list update after %.2f seconds.", time.time() - start_time)
-    return extract_product_names(driver, config, limit=10)
+    return extract_product_names(driver, config, limit=10, timeout=0.8)
 
 
 def find_search_input(driver, config, timeout=5):
@@ -381,7 +452,7 @@ def click_checkbox_by_text(driver, checkbox_text, timeout=10):
                 break
         except Exception:
             pass
-        time.sleep(0.2)
+        time.sleep(0.05)
 
     if not checkbox:
         try:
@@ -412,7 +483,7 @@ def click_checkbox_by_text(driver, checkbox_text, timeout=10):
 
     try:
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
-        time.sleep(0.2)
+        time.sleep(0.05)
         checkbox.click()
     except Exception:
         driver.execute_script("arguments[0].click();", checkbox)
