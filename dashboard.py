@@ -394,6 +394,40 @@ def discover_tests() -> list[str]:
     return list(discover_tests_metadata().keys())
 
 
+@st.cache_data(ttl=20)
+def collect_pytest_nodeids() -> list[str]:
+    """Return pytest's real collected node ids, including parametrized cases."""
+    try:
+        cmd = [
+            sys.executable,
+            "-B",
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "-o",
+            "addopts=",
+            "tests",
+        ]
+        proc = subprocess.run(
+            cmd,
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+        lines = []
+        for line in (proc.stdout or "").splitlines():
+            text = line.strip()
+            if text.startswith("tests/") and "::" in text:
+                lines.append(text)
+        return lines
+    except Exception:
+        return []
+
+
 def read_checklist_summary() -> dict[str, int]:
     summary = {"PASS": 0, "TODO": 0, "TONG": 0}
     try:
@@ -933,6 +967,8 @@ def main() -> None:
     checklist = read_checklist_summary()
     discovered_metadata = discover_tests_metadata()
     discovered_tests = list(discovered_metadata.keys())
+    collected_tests = collect_pytest_nodeids()
+    source_test_count = len(collected_tests) if collected_tests else len(discovered_tests)
 
     st.markdown(
         """
@@ -992,7 +1028,7 @@ def main() -> None:
                     <span class="metric-icon">🔍</span>
                     <span class="metric-label">Mã nguồn Tests</span>
                 </div>
-                <div class="metric-value">{len(discovered_tests)}</div>
+                <div class="metric-value">{source_test_count}</div>
                 <div class="metric-footer">Test cases tìm thấy</div>
             </div>
         """, unsafe_allow_html=True)
@@ -1211,7 +1247,12 @@ def main() -> None:
 
         with tab_discovered:
             if discovered_metadata:
-                st.markdown(f"Phát hiện **{len(discovered_metadata)}** test cases từ mã nguồn:")
+                st.markdown(f"Phát hiện **{source_test_count}** test cases từ mã nguồn:")
+                if collected_tests and len(discovered_metadata) != source_test_count:
+                    st.caption(
+                        f"Đếm theo pytest collect thực tế: {source_test_count}. "
+                        f"Metadata mô tả từ AST: {len(discovered_metadata)} mục."
+                    )
                 st.markdown("#### Kiểm thử chức năng website: Search / Filter / Sort")
                 for test_id, meta in [
                     (k, v)
