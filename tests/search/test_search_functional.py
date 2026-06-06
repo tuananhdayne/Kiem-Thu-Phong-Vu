@@ -76,13 +76,25 @@ def _extract_product_names_quick(driver, config, limit=8, timeout=0.6):
     return names
 
 
+def _log_product_names(label: str, names: list[str]) -> None:
+    LOGGER.info("--- [%s] %s product(s) ---", label, len(names))
+    print(f"\n--- [{label}] {len(names)} product(s) ---")
+    if not names:
+        LOGGER.info("(khong lay duoc san pham nao)")
+        print("(khong lay duoc san pham nao)")
+        return
+    for index, name in enumerate(names, 1):
+        LOGGER.info("%s. %s", index, name)
+        print(f"{index}. {name}")
+
+
 # hàm này test xem khi search xong, click vào load more hoặc next page thì keyword có bị mất hay không, nếu mất thì sẽ không còn đúng với ý định của người dùng nữa
 def test_search_load_more_preserves_keyword(driver, test_config):
     """Xác thực chức năng 'Xem thêm sản phẩm' hoặc phân trang giữ nguyên từ khóa tìm kiếm gốc."""
     keyword = test_config["test_data"].get("search_keyword", "Logitech")
     driver.get(test_config["base_url"])
 
-    search_with_keyword(driver, test_config, keyword, wait_for_results=False, timeout=1.5)
+    search_with_keyword(driver, test_config, keyword, wait_for_results=False, timeout=5)
 
     # Pagination selectors (links) and common "load more" button selectors
     pagination_selectors = [
@@ -140,6 +152,7 @@ def test_search_load_more_preserves_keyword(driver, test_config):
         time.sleep(0.1)
 
     assert names_before, "No results on first page to validate pagination/load-more"
+    _log_product_names("SEARCH LOAD MORE - BEFORE CLICK", names_before)
     if control is None:
         pytest.skip("No pagination or load-more control detected on search results page")
 
@@ -158,6 +171,7 @@ def test_search_load_more_preserves_keyword(driver, test_config):
         time.sleep(0.3)
 
     assert new_names, "No results after clicking pagination/load-more control"
+    _log_product_names("SEARCH LOAD MORE - AFTER CLICK", new_names)
 
     # Ensure search input still contains or reflects the keyword (loose check)
     try:

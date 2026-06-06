@@ -307,7 +307,8 @@ def discover_tests_metadata() -> dict[str, dict]:
 
     for file_path in sorted(TESTS_DIR.rglob("test_*.py")):
         try:
-            content = file_path.read_text(encoding="utf-8")
+            rel_file = file_path.relative_to(TESTS_DIR).as_posix()
+            content = file_path.read_text(encoding="utf-8").lstrip("\ufeff")
             tree = ast.parse(content, filename=file_path.name)
             
             # Module level markers (e.g. pytestmark = pytest.mark.smoke)
@@ -363,24 +364,24 @@ def discover_tests_metadata() -> dict[str, dict]:
                             # Pytest sẽ dùng repr cho param có whitespace, ví dụ: "  Logitech  " -> "  Logitech  "
                             raw_param = str(param_val)
                             # Dùng index làm tie-breaker nếu 2 params giống nhau sau khi hiển thị
-                            test_id = f"tests/{file_path.name}::{node.name}[{raw_param}]"
+                            test_id = f"tests/{rel_file}::{node.name}[{raw_param}]"
                             if test_id in metadata:
-                                test_id = f"tests/{file_path.name}::{node.name}[{raw_param}-{idx}]"
+                                test_id = f"tests/{rel_file}::{node.name}[{raw_param}-{idx}]"
                             description = _test_business_description(f"{node.name}[{raw_param}]", doc.strip(), all_markers + ["parametrize"])
                             metadata[test_id] = {
                                 "doc": doc.strip(),
                                 "description": description,
-                                "file": file_path.name,
+                                "file": rel_file,
                                 "name": f"{node.name}[{raw_param}]",
                                 "markers": _ordered_markers(all_markers + ["parametrize"]),
                             }
                     else:
-                        test_id = f"tests/{file_path.name}::{node.name}"
+                        test_id = f"tests/{rel_file}::{node.name}"
                         description = _test_business_description(node.name, doc.strip(), all_markers)
                         metadata[test_id] = {
                             "doc": doc.strip(),
                             "description": description,
-                            "file": file_path.name,
+                            "file": rel_file,
                             "name": node.name,
                             "markers": all_markers
                         }
@@ -426,6 +427,19 @@ def collect_pytest_nodeids() -> list[str]:
         return lines
     except Exception:
         return []
+
+
+def _metadata_for_nodeid(nodeid: str, metadata: dict[str, dict]) -> dict:
+    """Best-effort map from real pytest nodeid to AST metadata for labels."""
+    normalized = nodeid.replace("\\", "/")
+    if normalized in metadata:
+        return metadata[normalized]
+    base = normalized.split("[", 1)[0]
+    for key, meta in metadata.items():
+        key_norm = key.replace("\\", "/")
+        if key_norm == normalized or key_norm.split("[", 1)[0] == base:
+            return meta
+    return {}
 
 
 def read_checklist_summary() -> dict[str, int]:
@@ -505,10 +519,23 @@ def find_screenshot_for_test(test_name: str) -> Path | None:
     return None
 
 
-def build_command(mode: str, custom_target: str, workers: int = 1, reruns: int = 2) -> list[str]:
+def _target_args(custom_target: str | list[str]) -> list[str]:
+    if isinstance(custom_target, list):
+        return [target for target in custom_target if target]
+    return custom_target.split() if custom_target else []
+
+
+def _target_text(custom_target: str | list[str]) -> str:
+    if isinstance(custom_target, list):
+        return " ".join(custom_target)
+    return custom_target or ""
+
+
+def build_command(mode: str, custom_target: str | list[str], workers: int = 1, reruns: int = 2) -> list[str]:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     xml_report = REPORTS_DIR / "results.xml"
-    destructive_mode = mode in ("Destructive", "All including destructive/security") or "destructive" in custom_target.lower()
+    custom_target_text = _target_text(custom_target)
+    destructive_mode = mode in ("Destructive", "All including destructive/security") or "destructive" in custom_target_text.lower()
     if destructive_mode:
         reruns = 0
 
@@ -545,47 +572,47 @@ def build_command(mode: str, custom_target: str, workers: int = 1, reruns: int =
     # Chọn target test
     if mode == "Smoke nhanh":
         if custom_target:
-            command.extend(custom_target.split())
+            command.extend(_target_args(custom_target))
             command.extend(["-m", f"smoke and {SAFE_MARKER_EXPR}"])
         else:
             command.extend(["tests", "-m", f"smoke and {SAFE_MARKER_EXPR}"])
     elif mode == "Regression ưu tiên":
         if custom_target:
-            command.extend(custom_target.split())
+            command.extend(_target_args(custom_target))
             command.extend(["-m", f"regression and {SAFE_MARKER_EXPR}"])
         else:
             command.extend(["tests", "-m", f"regression and {SAFE_MARKER_EXPR}"])
     elif mode == "Full suite":
         if custom_target:
-            command.extend(custom_target.split())
+            command.extend(_target_args(custom_target))
             command.extend(["-m", SAFE_MARKER_EXPR])
         else:
             command.extend(["tests", "-m", SAFE_MARKER_EXPR])
     elif mode == "Security payload":
         if custom_target:
-            command.extend(custom_target.split())
-            if "security" not in " ".join(custom_target.split()):
+            command.extend(_target_args(custom_target))
+            if "security" not in custom_target_text:
                 command.extend(["-m", "security and not destructive"])
         else:
             command.extend(["tests", "-m", "security and not destructive"])
         command.extend(["--run-security"])
     elif mode == "Destructive":
         if custom_target:
-            command.extend(custom_target.split())
-            if "destructive" not in " ".join(custom_target.split()):
+            command.extend(_target_args(custom_target))
+            if "destructive" not in custom_target_text:
                 command.extend(["-m", "destructive and not security"])
         else:
             command.extend(["tests", "-m", "destructive and not security"])
         command.extend(["--run-destructive"])
     elif mode == "All including destructive/security":
         if custom_target:
-            command.extend(custom_target.split())
+            command.extend(_target_args(custom_target))
         else:
             command.extend(["tests"])
         command.extend(["--run-destructive", "--run-security"])
     elif mode == "Tùy chỉnh":
-        target = custom_target.strip() or "tests"
-        command.extend(target.split())
+        targets = _target_args(custom_target)
+        command.extend(targets or ["tests"])
     else:
         command.extend(["tests"])
 
@@ -1082,11 +1109,15 @@ def main() -> None:
         
         if actual_mode == "Tùy chỉnh":
             with st.expander("🎯 Chọn Test Case cụ thể", expanded=True):
-                if discovered_tests:
+                selectable_tests = collected_tests or discovered_tests
+                if selectable_tests:
                     selected_tests = st.multiselect(
                         "Click chọn một hoặc nhiều test để chạy:",
-                        discovered_tests,
-                        format_func=lambda x: f"{x.split('::')[-1]} - {discovered_metadata.get(x, {}).get('doc', 'Không có mô tả')}",
+                        selectable_tests,
+                        format_func=lambda x: (
+                            f"{x.split('::')[-1]} - "
+                            f"{_metadata_for_nodeid(x, discovered_metadata).get('doc', 'Không có mô tả')}"
+                        ),
                         max_selections=50
                     )
                 custom_target = st.text_input("Hoặc nhập target Pytest thủ công (ví dụ: tests/test_cases.py):")
@@ -1323,9 +1354,10 @@ def main() -> None:
     
     if run_clicked:
         if selected_tests:
-            target = " ".join(selected_tests)
+            target = selected_tests
         else:
             target = custom_target if actual_mode == "Tùy chỉnh" else ""
+        target_text = _target_text(target)
             
         # Generate run id and try to get git commit for traceability
         run_id = str(uuid.uuid4())
@@ -1365,19 +1397,26 @@ def main() -> None:
             st.info("Chế độ hiển thị yêu cầu 'Workers = 1' để cửa sổ trình duyệt hiển thị. Hệ thống đã đặt Workers = 1 cho lần chạy này.")
             workers = 1
 
-        has_destructive = actual_mode in ("Destructive", "All including destructive/security") or "destructive" in target.lower()
+        has_destructive = (
+            actual_mode in ("Destructive", "All including destructive/security")
+            or "destructive" in target_text.lower()
+            or "test_search_very_long_query" in target_text
+        )
         if has_destructive:
             if int(reruns) != 0:
-                st.info("Chế độ có destructive test được ép Retries = 0. Mỗi worker dùng Chrome độc lập, mỗi test mở tab riêng rồi đóng để tránh làm hỏng session Selenium hoặc thiếu testcase trong XML.")
+                st.info("Chế độ có destructive test được ép Retries = 0. Dashboard sẽ mở Chrome riêng cho từng test và kill ngay sau test để tránh treo RAM.")
             reruns = 0
-            os.environ["SELENIUM_WORKER_BROWSER"] = "1"
-            os.environ.pop("SELENIUM_ISOLATE_EACH_TEST", None)
-        else:
+            os.environ["SELENIUM_ISOLATE_EACH_TEST"] = "1"
             os.environ.pop("SELENIUM_WORKER_BROWSER", None)
-            os.environ.pop("SELENIUM_ISOLATE_EACH_TEST", None)
+        else:
+            os.environ["SELENIUM_ISOLATE_EACH_TEST"] = "1"
+            os.environ.pop("SELENIUM_WORKER_BROWSER", None)
 
         os.environ["SELENIUM_TIMEOUT"] = str(int(timeout))
-        if actual_mode == "Destructive" or ("destructive" in target.lower() and actual_mode != "All including destructive/security"):
+        if actual_mode == "Destructive" or (
+            actual_mode != "All including destructive/security"
+            and ("destructive" in target_text.lower() or "test_search_very_long_query" in target_text)
+        ):
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "4"
             os.environ["DESTRUCTIVE_SCRIPT_TIMEOUT"] = "2"
             os.environ["DESTRUCTIVE_MAX_RESPONSE_SECONDS"] = "8"
@@ -1421,7 +1460,7 @@ def main() -> None:
             "run_id": os.environ.get("RUN_ID", "-"),
             "git_commit": os.environ.get("GIT_COMMIT", "-"),
             "mode": f"{actual_mode}",
-            "target": target if target else "tests (all)",
+            "target": target_text if target_text else "tests (all)",
             "description": description if description else "",
             "workers": int(workers),
             "headless": bool(headless),

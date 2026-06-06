@@ -20,6 +20,7 @@ from utils.logging_utils import configure_logging
 # Use a consistent logger name across the project
 LOGGER = logging.getLogger("phongvu-tests-selenium")
 _WORKER_BROWSER = {"browser": None, "user_data_dir": None, "chromedriver_pid": None}
+_SELENIUM_CHROMEDRIVER_PIDS = set()
 
 
 def _kill_windows_process_tree(pid):
@@ -37,6 +38,23 @@ def _kill_windows_process_tree(pid):
         )
     except Exception as exc:
         LOGGER.warning("Failed to kill Selenium process tree PID %s: %s", pid, exc)
+
+
+def _register_chromedriver_pid(pid):
+    if pid:
+        _SELENIUM_CHROMEDRIVER_PIDS.add(pid)
+
+
+def _unregister_chromedriver_pid(pid):
+    if pid:
+        _SELENIUM_CHROMEDRIVER_PIDS.discard(pid)
+
+
+def _kill_registered_selenium_processes():
+    for pid in list(_SELENIUM_CHROMEDRIVER_PIDS):
+        LOGGER.info("Final cleanup: killing Selenium ChromeDriver process tree PID %s.", pid)
+        _kill_windows_process_tree(pid)
+        _unregister_chromedriver_pid(pid)
 
 
 def pytest_configure(config):
@@ -127,7 +145,6 @@ def _create_isolated_chrome_driver():
         chrome_options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
     except Exception:
         pass
-
     browser = webdriver.Chrome(options=chrome_options)
     command_timeout = int(os.getenv("SELENIUM_COMMAND_TIMEOUT", "30"))
     try:
@@ -168,6 +185,8 @@ def _create_isolated_chrome_driver():
         chromedriver_pid = browser.service.process.pid
     except Exception:
         chromedriver_pid = None
+    _register_chromedriver_pid(chromedriver_pid)
+    _register_chromedriver_pid(chromedriver_pid)
 
     return browser, user_data_dir, chromedriver_pid
 
@@ -179,6 +198,7 @@ def _cleanup_isolated_chrome_driver(browser, user_data_dir, chromedriver_pid, qu
         except Exception:
             pass
     _kill_windows_process_tree(chromedriver_pid)
+    _unregister_chromedriver_pid(chromedriver_pid)
     try:
         shutil.rmtree(user_data_dir, ignore_errors=True)
     except Exception as exc:
@@ -327,6 +347,7 @@ def browser_session():
         if fast_shutdown and os.name == "nt":
             LOGGER.info("Fast Selenium shutdown enabled; killing ChromeDriver process tree.")
             _kill_windows_process_tree(chromedriver_pid)
+            _unregister_chromedriver_pid(chromedriver_pid)
         else:
             try:
                 for handle in list(browser.window_handles):
@@ -344,6 +365,7 @@ def browser_session():
                 LOGGER.exception("Failed to quit browser: %s", exc)
 
             _kill_windows_process_tree(chromedriver_pid)
+            _unregister_chromedriver_pid(chromedriver_pid)
 
         try:
             shutil.rmtree(user_data_dir, ignore_errors=True)
@@ -508,6 +530,7 @@ def driver(request):
             destructive_pid = None
         LOGGER.warning("Stopping Selenium browser immediately after destructive failure: %s", request.node.name)
         _kill_windows_process_tree(destructive_pid)
+        _unregister_chromedriver_pid(destructive_pid)
         if owns_browser:
             _cleanup_isolated_chrome_driver(browser_session, user_data_dir, chromedriver_pid, quit_browser=False)
         elif uses_worker_browser:
@@ -558,6 +581,7 @@ def pytest_sessionstart(session):
 def pytest_sessionfinish(session, exitstatus):
     """Ghi lại lịch sử chạy vào run_history.json sau khi kết thúc pytest session."""
     _reset_worker_browser(quit_browser=True)
+    _kill_registered_selenium_processes()
     # 1. Tránh ghi đè nếu chạy từ Streamlit Dashboard (vì Dashboard tự ghi lại lịch sử với thông tin chuẩn hơn)
     if os.getenv("STREAMLIT_DASHBOARD_RUN") == "1":
         return
@@ -614,3 +638,9 @@ def pytest_sessionfinish(session, exitstatus):
         run_history_path.write_text(json.dumps(history[:50], ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         pass
+
+
+def pytest_unconfigure(config):
+    """Last-resort cleanup for Selenium-owned Chrome processes."""
+    _reset_worker_browser(quit_browser=True)
+    _kill_registered_selenium_processes()

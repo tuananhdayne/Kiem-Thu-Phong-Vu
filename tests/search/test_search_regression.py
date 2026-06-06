@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 import unicodedata
 from urllib.parse import urlparse
@@ -101,10 +101,21 @@ def test_search_very_long_query(driver, test_config):
         pytest.fail("FREEZE: Search input element not found in DOM by selectors", pytrace=False)
 
     search_input = seed_result["element"]
+    seed_length = int(seed_result.get("length") or 0)
+    if seed_length != chunk_size:
+        pytest.fail(
+            "SETUP: Khong seed duoc du lieu ban dau vao o tim kiem. "
+            f"Can {chunk_size:,}, thuc te {seed_length:,}.",
+            pytrace=False,
+        )
+
     search_input.send_keys(Keys.CONTROL, "a")
     search_input.send_keys(Keys.CONTROL, "c")
-    search_input.send_keys(Keys.END)
-    print(f"Seed: da copy {int(seed_result.get('length') or 0):,} ky tu vao clipboard bang Ctrl+A/C.")
+    driver.execute_script(
+        "arguments[0].focus(); arguments[0].setSelectionRange(arguments[0].value.length, arguments[0].value.length);",
+        search_input,
+    )
+    print(f"Seed: da copy {seed_length:,} ky tu vao clipboard bang Ctrl+A/C.")
 
     for i in range(1, max_iterations + 1):
         expected_min_chars = (i + 1) * chunk_size
@@ -116,6 +127,15 @@ def test_search_very_long_query(driver, test_config):
             actual_length = int(driver.execute_script("return arguments[0].value.length;", search_input) or 0)
 
             if actual_length < expected_min_chars:
+                if i == 1 and actual_length == 0:
+                    pytest.fail(
+                        "SETUP: Ctrl+V lan dau lam input rong. "
+                        "Day la dau hieu clipboard automation/selection bi loi trong moi truong Selenium, "
+                        "khong du co so ket luan website bi freeze. "
+                        f"Seed ban dau: {seed_length:,}. Mong doi sau paste dau: {expected_min_chars:,}.",
+                        pytrace=False,
+                    )
+
                 click_ok = False
                 click_error = ""
                 try:
