@@ -1,5 +1,15 @@
 [
   {
+    "time": "2026-06-08T16:46:07.026008Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Regression ưu tiên)",
+    "target": "-q -o addopts= -n 4 tests/filter tests/search tests/sort tests/test_black_box_extended.py tests/test_regression_filter_sort_search.py --run-security --run-destructive --html=reports/report_three_features_full_rerun.html --self-contained-html --junitxml=reports/results_three_features_full_rerun.xml",
+    "returncode": 1,
+    "duration": 331.51
+  },
+  {
     "time": "2026-06-08T16:26:14.931189Z",
     "run_id": "-",
     "git_commit": "-",
@@ -528,17 +538,5 @@
     "headless": true,
     "returncode": 0,
     "duration": 47.29
-  },
-  {
-    "time": "2026-06-04T07:46:12.017679Z",
-    "run_id": "3dbd8eef-8fd6-4a76-a2d7-42c781b3f789",
-    "git_commit": "ff3e692",
-    "mode": "Tùy chỉnh",
-    "target": "tests/test_search_regression.py::test_search_very_long_query",
-    "description": "",
-    "workers": 4,
-    "headless": true,
-    "returncode": 5,
-    "duration": 4.73
   }
 ]

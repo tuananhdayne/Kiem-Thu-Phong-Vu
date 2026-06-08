@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title id="head-title">report_three_features_full_rerun.html</title>
+      <style type="text/css">body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  vertical-align: top;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+#environment ul {
+  margin: 0;
+  padding: 0 20px;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+.col-links__extra {
+  margin-right: 3px;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.logwrapper {
+  max-height: 230px;
+  overflow-y: scroll;
+  background-color: #e6e6e6;
+}
+.logwrapper.expanded {
+  max-height: none;
+}
+.logwrapper.expanded .logexpander:after {
+  content: "collapse [-]";
+}
+.logwrapper .logexpander {
+  z-index: 1;
+  position: sticky;
+  top: 10px;
+  width: max-content;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 5px 7px;
+  margin: 10px 0 10px calc(100% - 80px);
+  cursor: pointer;
+  background-color: #e6e6e6;
+}
+.logwrapper .logexpander:after {
+  content: "expand [+]";
+}
+.logwrapper .logexpander:hover {
+  color: #000;
+  border-color: #000;
+}
+.logwrapper .log {
+  min-height: 40px;
+  position: relative;
+  top: -50px;
+  height: calc(100% + 50px);
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  padding: 5px;
+  padding-right: 80px;
+  white-space: pre-wrap;
+}
+
+div.media {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin: 0 5px;
+  overflow: hidden;
+  width: 320px;
+}
+
+.media-container {
+  display: grid;
+  grid-template-columns: 25px auto 25px;
+  align-items: center;
+  flex: 1 1;
+  overflow: hidden;
+  height: 200px;
+}
+
+.media-container--fullscreen {
+  grid-template-columns: 0px auto 0px;
+}
+
+.media-container__nav--right,
+.media-container__nav--left {
+  text-align: center;
+  cursor: pointer;
+}
+
+.media-container__viewport {
+  cursor: pointer;
+  text-align: center;
+  height: inherit;
+}
+.media-container__viewport img,
+.media-container__viewport video {
+  object-fit: cover;
+  width: 100%;
+  max-height: 100%;
+}
+
+.media__name,
+.media__counter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 0 0 25px;
+  align-items: center;
+}
+
+.collapsible td:not(.col-links) {
+  cursor: pointer;
+}
+.collapsible td:not(.col-links):hover::after {
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.col-result {
+  width: 130px;
+}
+.col-result:hover::after {
+  content: " (hide details)";
+}
+
+.col-result.collapsed:hover::after {
+  content: " (show details)";
+}
+
+#environment-header h2:hover::after {
+  content: " (hide details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#environment-header.collapsed h2:hover::after {
+  content: " (show details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+.sortable.desc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: -12.5px;
+  border: 10px solid #4caf50;
+  border-bottom: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+.sortable.asc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: 12.5px;
+  border: 10px solid #4caf50;
+  border-top: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.hidden, .summary__reload__button.hidden {
+  display: none;
+}
+
+.summary__data {
+  flex: 0 0 550px;
+}
+.summary__reload {
+  flex: 1 1;
+  display: flex;
+  justify-content: center;
+}
+.summary__reload__button {
+  flex: 0 0 300px;
+  display: flex;
+  color: white;
+  font-weight: bold;
+  background-color: #4caf50;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.summary__reload__button:hover {
+  background-color: #46a049;
+}
+.summary__spacer {
+  flex: 0 0 550px;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filters,
+.collapse {
+  display: flex;
+  align-items: center;
+}
+.filters button,
+.collapse button {
+  color: #999;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.filters button:hover,
+.collapse button:hover {
+  color: #ccc;
+}
+
+.filter__label {
+  margin-right: 10px;
+}
+
+      </style>
+    
+  </head>
+  <body>
+    <h1 id="title">report_three_features_full_rerun.html</h1>
+    <p>Report generated on 08-Jun-2026 at 23:46:07 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
+        v4.2.0</p>
+    <div id="environment-header">
+      <h2>Environment</h2>
+    </div>
+    <table id="environment"></table>
+    <!-- TEMPLATES -->
+      <template id="template_environment_row">
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </template>
+    <template id="template_results-table__body--empty">
+      <tbody class="results-table-row">
+        <tr id="not-found-message">
+          <td colspan="4">No results found. Check the filters.</td>
+        </tr>
+      </tbody>
+    </template>
+    <template id="template_results-table__tbody">
+      <tbody class="results-table-row">
+        <tr class="collapsible">
+        </tr>
+        <tr class="extras-row">
+          <td class="extra" colspan="4">
+            <div class="extraHTML"></div>
+            <div class="media">
+              <div class="media-container">
+                  <div class="media-container__nav--left">&lt;</div>
+                  <div class="media-container__viewport">
+                    <img src="" />
+                    <video controls>
+                      <source src="" type="video/mp4">
+                    </video>
+                  </div>
+                  <div class="media-container__nav--right">&gt;</div>
+                </div>
+                <div class="media__name"></div>
+                <div class="media__counter"></div>
+            </div>
+            <div class="logwrapper">
+              <div class="logexpander"></div>
+              <div class="log"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </template>
+    <!-- END TEMPLATES -->
+    <div class="summary">
+      <div class="summary__data">
+        <h2>Summary</h2>
+        <div class="additional-summary prefix">
+        </div>
+        <p class="run-count">39 tests took 00:05:32.</p>
+        <p class="filter">(Un)check the boxes to filter the results.</p>
+        <div class="summary__reload">
+          <div class="summary__reload__button hidden" onclick="location.reload()">
+            <div>There are still tests running. <br />Reload this page to get the latest results!</div>
+          </div>
+        </div>
+        <div class="summary__spacer"></div>
+        <div class="controls">
+          <div class="filters">
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" >
+            <span class="failed">1 Failed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" >
+            <span class="passed">38 Passed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled>
+            <span class="skipped">0 Skipped,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled>
+            <span class="xfailed">0 Expected failures,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xpassed" disabled>
+            <span class="xpassed">0 Unexpected passes,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="error" disabled>
+            <span class="error">0 Errors,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="rerun" disabled>
+            <span class="rerun">0 Reruns</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="retried" disabled>
+            <span class="retried">0 Retried,</span>
+          </div>
+          <div class="collapse">
+            <button id="show_all_details">Show all details</button>&nbsp;/&nbsp;<button id="hide_all_details">Hide all details</button>
+          </div>
+        </div>
+      </div>
+      <div class="additional-summary summary">
+      </div>
+      <div class="additional-summary postfix">
+      </div>
+    </div>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable" data-column-type="result">Result</th>
+          <th class="sortable" data-column-type="testId">Test</th>
+          <th class="sortable" data-column-type="duration">Duration</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+    </table>
+  <footer>
+    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.14.0&#34;, &#34;Platform&#34;: &#34;Windows-11-10.0.26200-SP0&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;9.0.3&#34;, &#34;pluggy&#34;: &#34;1.6.0&#34;}, &#34;Plugins&#34;: {&#34;anyio&#34;: &#34;4.13.0&#34;, &#34;base-url&#34;: &#34;2.1.0&#34;, &#34;html&#34;: &#34;4.2.0&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;rerunfailures&#34;: &#34;16.3&#34;, &#34;xdist&#34;: &#34;3.8.0&#34;}, &#34;Base URL&#34;: &#34;&#34;}, &#34;tests&#34;: {&#34;tests/search/test_search_functional.py::test_search_autocomplete_suggestion_click_navigates_to_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_functional.py::test_search_autocomplete_suggestion_click_navigates_to_results&#34;, &#34;duration&#34;: &#34;00:00:29&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_functional.py::test_search_autocomplete_suggestion_click_navigates_to_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:29&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_autocomplete_suggestion_click_navigates_to_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_autocomplete_suggestion_click_navigates_to_results\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:test_search_functional.py:335 DEBUG: fallback DOM selector matched suggestion\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_functional.py:384 DEBUG: suggestion_text=logitech bluetooth\nlogitech pebble\nlogitech g pro\nlogitech g102\nlogitech m331\nINFO     phongvu-tests-selenium:test_search_functional.py:387 DEBUG: products after suggestion: [&amp;#x27;Chu\u1ed9t gaming kh\u00f4ng d\u00e2y Logitech G Pro X - SuperLight (Tr\u1eafng)&amp;#x27;, &amp;#x27;B\u00e0n ph\u00edm Logitech Pro X TKL 920-012137&amp;#x27;, &amp;#x27;B\u00e0n ph\u00edm c\u01a1 Gaming Logitech G Pro X (920-009239) - Demo&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh gaming Logitech G Pro Hero (\u0110en) (910-005442) - Demo&amp;#x27;, &amp;#x27;Tai nghe Over-ear Gaming Logitech G Pro Gen 2 (981-000814) (\u0110en) - Demo&amp;#x27;]\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 5 prices.\nINFO     phongvu-tests-selenium:test_search_functional.py:392 DEBUG: prices after suggestion: [2380000, 4099000, 1139000, 379000, 799000]\nINFO     phongvu-tests-selenium:test_search_functional.py:393 DEBUG: prices sorted ascending: False\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_autocomplete_suggestion_click_navigates_to_results&#34;}], &#34;tests/filter/test_filter_advanced.py::test_filter_combination_no_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/filter/test_filter_advanced.py::test_filter_combination_no_results&#34;, &#34;duration&#34;: &#34;00:00:29&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/filter/test_filter_advanced.py::test_filter_combination_no_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:29&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw1] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_combination_no_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_combination_no_results\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER ADVANCED TEST: COMBINATION NO RESULTS] ---\nSearched: noresults_xyz_98765 under brand Apple. Text found: &amp;#x27;khong tim thay san pham nao&amp;#x27;\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;noresults_xyz_98765&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 4.43 seconds.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_combination_no_results&#34;}], &#34;tests/search/test_search_functional.py::test_search_load_more_preserves_keyword&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_functional.py::test_search_load_more_preserves_keyword&#34;, &#34;duration&#34;: &#34;00:00:58&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_functional.py::test_search_load_more_preserves_keyword&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:58&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_load_more_preserves_keyword\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_load_more_preserves_keyword\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH LOAD MORE - BEFORE CLICK] 8 product(s) ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n6. B\u00e0n ph\u00edm Logitech K270\n7. Thi\u1ebft b\u1ecb ghi h\u00ecnh/ Webcam Logitech C270\n8. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n--- [SEARCH LOAD MORE - AFTER CLICK] 16 product(s) ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n6. B\u00e0n ph\u00edm Logitech K270\n7. Thi\u1ebft b\u1ecb ghi h\u00ecnh/ Webcam Logitech C270\n8. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n9. Chu\u1ed9t kh\u00f4ng d\u00e2y Logitech Silent M220 (\u0110en)\n10. B\u00e0n ph\u00edm Logitech K400 Plus\n11. Chu\u1ed9t gaming Logitech G502 HERO\n12. Chu\u1ed9t kh\u00f4ng d\u00e2y bluetooth Logitech M650L\n13. B\u00e0n ph\u00edm + Chu\u1ed9t Logitech MK120\n14. B\u00e0n ph\u00edm + Chu\u1ed9t Logitech MK220\n15. Tai nghe Logitech H110\n16. Chu\u1ed9t Logitech M240 \u0111en for Business\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech&amp;#x27;\nWARNING  phongvu-tests-selenium:base_page.py:39 No visible element found for selectors: [&amp;quot;a[rel=&amp;#x27;next&amp;#x27;]&amp;quot;, &amp;#x27;ul.pagination li a&amp;#x27;, &amp;#x27;a.next&amp;#x27;, &amp;quot;button[aria-label=&amp;#x27;Next&amp;#x27;]&amp;quot;, &amp;quot;a[aria-label=&amp;#x27;Next&amp;#x27;]&amp;quot;, &amp;quot;nav[aria-label=&amp;#x27;Pagination&amp;#x27;] a&amp;quot;]\nWARNING  phongvu-tests-selenium:base_page.py:39 No visible element found for selectors: [&amp;#x27;button.load-more&amp;#x27;, &amp;#x27;button#load-more&amp;#x27;, &amp;#x27;.btn-load-more&amp;#x27;, &amp;quot;button[aria-label*=&amp;#x27;Xem&amp;#x27;]&amp;quot;, &amp;quot;button[aria-label*=&amp;#x27;Load&amp;#x27;]&amp;quot;]\nINFO     phongvu-tests-selenium:test_search_functional.py:144 Matched load-more control via xpath: //*[self::button or self::a][contains(normalize-space(.), &amp;#x27;Xem th\u00eam s\u1ea3n ph\u1ea9m&amp;#x27;)]\nINFO     phongvu-tests-selenium:test_search_functional.py:80 --- [SEARCH LOAD MORE - BEFORE CLICK] 8 product(s) ---\nINFO     phongvu-tests-selenium:test_search_functional.py:87 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_functional.py:87 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_functional.py:87 5. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_functional.py:87 6. B\u00e0n ph\u00edm Logitech K270\nINFO     phongvu-tests-selenium:test_search_functional.py:87 7. Thi\u1ebft b\u1ecb ghi h\u00ecnh/ Webcam Logitech C270\nINFO     phongvu-tests-selenium:test_search_functional.py:87 8. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:32 Scrolling to and clicking load_more\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 16 product names.\nINFO     phongvu-tests-selenium:test_search_functional.py:80 --- [SEARCH LOAD MORE - AFTER CLICK] 16 product(s) ---\nINFO     phongvu-tests-selenium:test_search_functional.py:87 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_functional.py:87 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_functional.py:87 5. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_functional.py:87 6. B\u00e0n ph\u00edm Logitech K270\nINFO     phongvu-tests-selenium:test_search_functional.py:87 7. Thi\u1ebft b\u1ecb ghi h\u00ecnh/ Webcam Logitech C270\nINFO     phongvu-tests-selenium:test_search_functional.py:87 8. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 9. Chu\u1ed9t kh\u00f4ng d\u00e2y Logitech Silent M220 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_functional.py:87 10. B\u00e0n ph\u00edm Logitech K400 Plus\nINFO     phongvu-tests-selenium:test_search_functional.py:87 11. Chu\u1ed9t gaming Logitech G502 HERO\nINFO     phongvu-tests-selenium:test_search_functional.py:87 12. Chu\u1ed9t kh\u00f4ng d\u00e2y bluetooth Logitech M650L\nINFO     phongvu-tests-selenium:test_search_functional.py:87 13. B\u00e0n ph\u00edm + Chu\u1ed9t Logitech MK120\nINFO     phongvu-tests-selenium:test_search_functional.py:87 14. B\u00e0n ph\u00edm + Chu\u1ed9t Logitech MK220\nINFO     phongvu-tests-selenium:test_search_functional.py:87 15. Tai nghe Logitech H110\nINFO     phongvu-tests-selenium:test_search_functional.py:87 16. Chu\u1ed9t Logitech M240 \u0111en for Business\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_load_more_preserves_keyword&#34;}], &#34;tests/filter/test_filter_advanced.py::test_filter_all_products_match_brand&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/filter/test_filter_advanced.py::test_filter_all_products_match_brand&#34;, &#34;duration&#34;: &#34;00:00:58&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/filter/test_filter_advanced.py::test_filter_all_products_match_brand&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:58&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_all_products_match_brand\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_all_products_match_brand\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER ADVANCED TEST: BEFORE BRAND FILTER] ---\n1. Laptop Msi Modern 14 F1MG-432VN (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home)\n2. Laptop Asus Zenbook Duo UX8407AA-SN439WS (Ultra X7-358H/ 32GB/ 512GB/ Windows 11 Home)\n3. Laptop Dell Pro 14 Essential PV14250 PV14250-120U-16512W (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home SL)\n4. Laptop Asus Zenbook A14 UX3407NA-QD132WS (Snapdragon X2 Elite X2E88100/ 16GB/ 512GB/ Windows 11 Home)\n5. Laptop Asus ROG Zephyrus G14 GU405AW-SY029W (Ultra 9-386H/ GeForce RTXTM 5080/ 32GB/ 1TB/ Windows 11 Home)\n\n--- [FILTER ADVANCED TEST: AFTER BRAND FILTER] ---\n1. MacBook Neo 13 inch A18 Pro 8GB 512GB\n2. MacBook Neo 13 inch A18 Pro 8GB 256GB\n3. MacBook Pro M5 Max 16 inch 2026 (18 CPU/ 32 GPU/ 36GB/ 2TB)\n4. MacBook Pro M5 Pro 14 inch 2026 (15 CPU/ 16 GPU/ 24GB/ 2TB)\n5. MacBook Pro M5 Pro 14 inch 2026 (18 CPU/ 20 GPU/ 24GB/ 2TB)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 20 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:300 Waiting for product list to update for filter: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:313 Product list updated after 9.98 seconds.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_all_products_match_brand&#34;}], &#34;tests/search/test_search_functional.py::test_search_enter_vs_click_icon_same_result&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_functional.py::test_search_enter_vs_click_icon_same_result&#34;, &#34;duration&#34;: &#34;00:00:29&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_functional.py::test_search_enter_vs_click_icon_same_result&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:29&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_enter_vs_click_icon_same_result\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_enter_vs_click_icon_same_result\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_functional.py:420 DEBUG: names_enter=[&amp;#x27;B\u00e0n ph\u00edm Logitech K120&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r&amp;#x27;, &amp;#x27;Chu\u1ed9t gaming Logitech G304 Wireless&amp;#x27;]\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_functional.py:455 DEBUG: names_click=[&amp;#x27;B\u00e0n ph\u00edm Logitech K120&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)&amp;#x27;, &amp;#x27;Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r&amp;#x27;, &amp;#x27;Chu\u1ed9t gaming Logitech G304 Wireless&amp;#x27;]\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_enter_vs_click_icon_same_result&#34;}], &#34;tests/search/test_search_functional.py::test_search_deeplink_query_loads_correct_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_functional.py::test_search_deeplink_query_loads_correct_results&#34;, &#34;duration&#34;: &#34;00:00:31&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_functional.py::test_search_deeplink_query_loads_correct_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:31&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_deeplink_query_loads_correct_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_deeplink_query_loads_correct_results\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nWARNING  phongvu-tests-selenium:base_page.py:60 No visible elements found for selectors: [&amp;#x27;div.att-product-card-title&amp;#x27;, &amp;quot;[class*=&amp;#x27;att-product-card-title&amp;#x27;]&amp;quot;, &amp;quot;[class*=&amp;#x27;product-card-title&amp;#x27;]&amp;quot;, &amp;quot;[class*=&amp;#x27;product&amp;#x27;] h3&amp;quot;]\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 6 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_deeplink_query_loads_correct_results&#34;}], &#34;tests/filter/test_filter_advanced.py::test_unfilter_restores_list&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/filter/test_filter_advanced.py::test_unfilter_restores_list&#34;, &#34;duration&#34;: &#34;00:00:39&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/filter/test_filter_advanced.py::test_unfilter_restores_list&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:39&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_unfilter_restores_list\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_unfilter_restores_list\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER ADVANCED TEST: RESTORED LIST AFTER UNFILTER] ---\n1. Laptop Msi Modern 14 F1MG-432VN (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home)\n2. Laptop Asus Zenbook Duo UX8407AA-SN439WS (Ultra X7-358H/ 32GB/ 512GB/ Windows 11 Home)\n3. Laptop Dell Pro 14 Essential PV14250 PV14250-120U-16512W (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home SL)\n4. Laptop Asus Zenbook A14 UX3407NA-QD132WS (Snapdragon X2 Elite X2E88100/ 16GB/ 512GB/ Windows 11 Home)\n5. Laptop Asus ROG Zephyrus G14 GU405AW-SY029W (Ultra 9-386H/ GeForce RTXTM 5080/ 32GB/ 1TB/ Windows 11 Home)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 20 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_unfilter_restores_list&#34;}], &#34;tests/search/test_search_regression.py::test_search_vietnamese_accent_and_no_accent&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_vietnamese_accent_and_no_accent&#34;, &#34;duration&#34;: &#34;00:00:39&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_vietnamese_accent_and_no_accent&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:39&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_vietnamese_accent_and_no_accent\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_vietnamese_accent_and_no_accent\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;\u0111i\u1ec7n tho\u1ea1i&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.11 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;dien thoai&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.92 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_vietnamese_accent_and_no_accent&#34;}], &#34;tests/search/test_search_regression.py::test_search_empty_query&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_empty_query&#34;, &#34;duration&#34;: &#34;00:00:12&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_empty_query&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:12&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_empty_query\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_empty_query\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;   &amp;#x27;\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_empty_query&#34;}], &#34;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]&#34;, &#34;duration&#34;: &#34;00:00:21&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:21&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_xss_payload_is_sanitized[&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_xss_payload_is_sanitized[&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.90 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_xss_payload_is_sanitized[&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;]&#34;}], &#34;tests/filter/test_filter_advanced.py::test_filter_multiple_conditions_then_remove_one_updates_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/filter/test_filter_advanced.py::test_filter_multiple_conditions_then_remove_one_updates_results&#34;, &#34;duration&#34;: &#34;00:01:29&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/filter/test_filter_advanced.py::test_filter_multiple_conditions_then_remove_one_updates_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:01:29&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw1] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_multiple_conditions_then_remove_one_updates_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_multiple_conditions_then_remove_one_updates_results\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER ADVANCED TEST: MULTI-FILTER (Acer + Apple)] ---\n1. Laptop Acer Aspire 14 AI A14-11M-X8FP (Snapdragon X X1 26 100/ 16GB/ 512GB/ Windows 11 Home SL)\n2. Laptop Acer Aspire Go 15 AI AG15-52P-52WT (Ultra 5-115U/ 16GB/ 512GB/ Windows 11 Home SL)\n3. Laptop Acer Aspire Lite 15 AL15-48P-R86Q (Ryzen 7 5825U/ 8GB/ 512GB/ Windows 11 Home SL)\n4. Laptop Acer Predator Helios Neo - PHN16-I31-72XE (i7-14650HX/ GeForce RTXTM 5060/ 32GB/ 512GB/ Windows 11 Home SL)\n5. Laptop Acer Predator Helios Neo - PHN16-I31-74MN (i7-14650HX/ GeForce RTXTM 5050/ 32GB/ 512GB/ Windows 11 Home SL)\n\n--- [FILTER ADVANCED TEST: REMOVED ONE FILTER (Acer removed, keeping Apple)] ---\n1. MacBook Neo 13 inch A18 Pro 8GB 512GB\n2. MacBook Neo 13 inch A18 Pro 8GB 256GB\n3. MacBook Pro M5 Max 16 inch 2026 (18 CPU/ 32 GPU/ 36GB/ 2TB)\n4. MacBook Pro M5 Pro 14 inch 2026 (15 CPU/ 16 GPU/ 24GB/ 2TB)\n5. MacBook Pro M5 Pro 14 inch 2026 (18 CPU/ 20 GPU/ 24GB/ 2TB)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Acer\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Acer\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:300 Waiting for product list to update for filter: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nWARNING  phongvu-tests-selenium:catalog_page.py:317 Timed out waiting for product list update after 18.79 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Acer\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Acer\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_multiple_conditions_then_remove_one_updates_results&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; OR &#39;1&#39;=&#39;1]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; OR &#39;1&#39;=&#39;1]&#34;, &#34;duration&#34;: &#34;00:00:11&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; OR &#39;1&#39;=&#39;1]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:11&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; OR &amp;#x27;1&amp;#x27;=&amp;#x27;1]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;#x27; OR &amp;#x27;1&amp;#x27;=&amp;#x27;1]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;#x27; OR &amp;#x27;1&amp;#x27;=&amp;#x27;1&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 1.68 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; OR &amp;#x27;1&amp;#x27;=&amp;#x27;1]&#34;}], &#34;tests/search/test_search_regression.py::test_search_change_keyword_updates_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_change_keyword_updates_results&#34;, &#34;duration&#34;: &#34;00:00:31&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_change_keyword_updates_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:31&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_change_keyword_updates_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_change_keyword_updates_results\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 8.21 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Samsung&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.96 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_change_keyword_updates_results&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[\&#34; OR \&#34;1\&#34;=\&#34;1]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[\&#34; OR \&#34;1\&#34;=\&#34;1]&#34;, &#34;duration&#34;: &#34;00:00:14&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[\&#34; OR \&#34;1\&#34;=\&#34;1]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:14&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;quot; OR &amp;quot;1&amp;quot;=&amp;quot;1]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;quot; OR &amp;quot;1&amp;quot;=&amp;quot;1]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;quot; OR &amp;quot;1&amp;quot;=&amp;quot;1&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 2.49 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;quot; OR &amp;quot;1&amp;quot;=&amp;quot;1]&#34;}], &#34;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[\&#34;&lt;img src=x onerror=alert(1)&gt;]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[\&#34;&lt;img src=x onerror=alert(1)&gt;]&#34;, &#34;duration&#34;: &#34;00:00:22&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_xss_payload_is_sanitized[\&#34;&lt;img src=x onerror=alert(1)&gt;]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:22&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_xss_payload_is_sanitized[&amp;quot;&amp;lt;img src=x onerror=alert(1)&amp;gt;]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_xss_payload_is_sanitized[&amp;quot;&amp;lt;img src=x onerror=alert(1)&amp;gt;]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;quot;&amp;lt;img src=x onerror=alert(1)&amp;gt;&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 7.66 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_xss_payload_is_sanitized[&amp;quot;&amp;lt;img src=x onerror=alert(1)&amp;gt;]&#34;}], &#34;tests/search/test_search_regression.py::test_search_then_sort_price_keeps_relevant_sorted_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_then_sort_price_keeps_relevant_sorted_results&#34;, &#34;duration&#34;: &#34;00:00:27&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_then_sort_price_keeps_relevant_sorted_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:27&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_then_sort_price_keeps_relevant_sorted_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_then_sort_price_keeps_relevant_sorted_results\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.32 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_then_sort_price_keeps_relevant_sorted_results&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT username,password FROM users --]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT username,password FROM users --]&#34;, &#34;duration&#34;: &#34;00:00:15&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT username,password FROM users --]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:15&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT username,password FROM users --]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT username,password FROM users --]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;#x27; UNION SELECT username,password FROM users --&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 4.59 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT username,password FROM users --]&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT NULL --]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT NULL --]&#34;, &#34;duration&#34;: &#34;00:00:16&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39; UNION SELECT NULL --]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:16&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT NULL --]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT NULL --]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;#x27; UNION SELECT NULL --&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 3.72 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:245 No product results are displayed.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;#x27; UNION SELECT NULL --]&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;; DROP TABLE products; --]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;; DROP TABLE products; --]&#34;, &#34;duration&#34;: &#34;00:00:15&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;; DROP TABLE products; --]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:15&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;#x27;; DROP TABLE products; --]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;#x27;; DROP TABLE products; --]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;#x27;; DROP TABLE products; --&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 4.37 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:245 No product results are displayed.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;#x27;; DROP TABLE products; --]&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;) UNION SELECT NULL,NULL --]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;) UNION SELECT NULL,NULL --]&#34;, &#34;duration&#34;: &#34;00:00:21&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[&#39;) UNION SELECT NULL,NULL --]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:21&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[&amp;#x27;) UNION SELECT NULL,NULL --]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[&amp;#x27;) UNION SELECT NULL,NULL --]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;&amp;#x27;) UNION SELECT NULL,NULL --&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.31 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[&amp;#x27;) UNION SELECT NULL,NULL --]&#34;}], &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[admin&#39; --]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[admin&#39; --]&#34;, &#34;duration&#34;: &#34;00:00:14&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_security.py::test_search_sql_payload_is_handled_safely[admin&#39; --]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:14&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_sql_payload_is_handled_safely[admin&amp;#x27; --]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_sql_payload_is_handled_safely[admin&amp;#x27; --]\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;admin&amp;#x27; --&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 3.40 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_sql_payload_is_handled_safely[admin&amp;#x27; --]&#34;}], &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech]&#34;, &#34;duration&#34;: &#34;00:00:19&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:19&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_variants_returns_relevant_results[Logitech]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_variants_returns_relevant_results[Logitech]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: variant] keyword=&amp;#x27;Logitech&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 7.23 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: variant] keyword=&amp;#x27;Logitech&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_variants_returns_relevant_results[Logitech]&#34;}], &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[logitech]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[logitech]&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[logitech]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_variants_returns_relevant_results[logitech]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_variants_returns_relevant_results[logitech]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: variant] keyword=&amp;#x27;logitech&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;logitech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.78 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: variant] keyword=&amp;#x27;logitech&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_variants_returns_relevant_results[logitech]&#34;}], &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[  Logitech  ]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[  Logitech  ]&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[  Logitech  ]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_variants_returns_relevant_results[  Logitech  ]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_variants_returns_relevant_results[  Logitech  ]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: variant] keyword=&amp;#x27;  Logitech  &amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;  Logitech  &amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.87 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: variant] keyword=&amp;#x27;  Logitech  &amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_variants_returns_relevant_results[  Logitech  ]&#34;}], &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech!@#]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech!@#]&#34;, &#34;duration&#34;: &#34;00:00:21&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_variants_returns_relevant_results[Logitech!@#]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:21&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_variants_returns_relevant_results[Logitech!@#]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_variants_returns_relevant_results[Logitech!@#]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: variant] keyword=&amp;#x27;Logitech!@#&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech!@#&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.40 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: variant] keyword=&amp;#x27;Logitech!@#&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t gaming Logitech G304 Wireless\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_variants_returns_relevant_results[Logitech!@#]&#34;}], &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitec]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitec]&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitec]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logitec]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logitec]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logitec&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t gaming Logitech G304 Wireless\n5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitec&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.37 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logitec&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logitec]&#34;}], &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit ech]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit ech]&#34;, &#34;duration&#34;: &#34;00:00:22&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit ech]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:22&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logit ech]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logit ech]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logit ech&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t gaming Logitech G304 Wireless\n5. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logit ech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.38 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logit ech&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M100r\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logit ech]&#34;}], &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitechk]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitechk]&#34;, &#34;duration&#34;: &#34;00:00:24&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logitechk]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:24&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logitechk]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logitechk]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logitechk&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t gaming Logitech G304 Wireless\n5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitechk&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 9.76 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logitechk&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logitechk]&#34;}], &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logtech]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logtech]&#34;, &#34;duration&#34;: &#34;00:00:21&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logtech]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:21&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logtech]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logtech]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logtech&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t gaming Logitech G304 Wireless\n5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logtech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 6.88 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logtech&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logtech]&#34;}], &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit3ch]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit3ch]&#34;, &#34;duration&#34;: &#34;00:00:20&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit3ch]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:20&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logit3ch]\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logit3ch]\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logit3ch&amp;#x27; ---\n1. B\u00e0n ph\u00edm Logitech K120\n2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\n3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\n4. Chu\u1ed9t gaming Logitech G304 Wireless\n5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logit3ch&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 5.45 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 5 product names.\nINFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword=&amp;#x27;Logit3ch&amp;#x27; ---\nINFO     phongvu-tests-selenium:test_search_variants.py:22 1. B\u00e0n ph\u00edm Logitech K120\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. Chu\u1ed9t m\u00e1y t\u00ednh Logitech B100 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t m\u00e1y t\u00ednh Logitech M331 (\u0110en)\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t gaming Logitech G304 Wireless\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t m\u00e1y t\u00ednh kh\u00f4ng d\u00e2y Logitech B175 (\u0110en)\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logit3ch]&#34;}], &#34;tests/search/test_search_variants.py::test_search_not_found_shows_no_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_variants.py::test_search_not_found_shows_no_results&#34;, &#34;duration&#34;: &#34;00:00:14&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_variants.py::test_search_not_found_shows_no_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:14&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_not_found_shows_no_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_not_found_shows_no_results\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;nonexistentsku12345&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 4.52 seconds.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_not_found_shows_no_results&#34;}], &#34;tests/search/test_search_regression.py::test_search_very_long_query&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Failed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_very_long_query&#34;, &#34;duration&#34;: &#34;00:02:04&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Failed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_very_long_query&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:02:04&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw1] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\ntimed out\n\nThe above exception was the direct cause of the following exception:\nHTTPConnectionPool(host=&amp;#x27;localhost&amp;#x27;, port=51867): Read timed out. (read timeout=30)\n\nDuring handling of the above exception, another exception occurred:\nFREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 4. Lan paste gay treo: 5. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host=&amp;#x27;localhost&amp;#x27;, port=51867): Read timed out. (read timeout=30)\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_very_long_query\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_very_long_query\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [START STRESS TEST: CTRL+A/C THEN SPAM CTRL+V, CHUNK 1,000,000 CHARS] ---\nSeed: da copy 1,000,000 ky tu vao clipboard bang Ctrl+A/C.\nLan paste 1: Ctrl+V thanh cong, input 2,000,000/2,000,000 ky tu, click OK, trong 3.693 giay.\nLan paste 2: Ctrl+V thanh cong, input 3,000,000/3,000,000 ky tu, click OK, trong 8.799 giay.\nLan paste 3: Ctrl+V thanh cong, input 4,000,000/4,000,000 ky tu, click OK, trong 14.151 giay.\nLan paste 4: Ctrl+V thanh cong, input 5,000,000/5,000,000 ky tu, click OK, trong 40.141 giay.\n[TREO PHAT HIEN] Trinh duyet bi treo hoan toan o lan paste thu 5. Loi: HTTPConnectionPool(host=&amp;#x27;localhost&amp;#x27;, port=51867): Read timed out. (read timeout=30)\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_very_long_query\nERROR    phongvu-tests-selenium:conftest.py:464 Skipping WebDriver artifact capture for destructive failure test_search_very_long_query. The browser may be unresponsive; set SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS=1 to force it.\nWARNING  phongvu-tests-selenium:conftest.py:531 Stopping Selenium browser immediately after destructive failure: test_search_very_long_query&#34;}], &#34;tests/search/test_search_regression.py::test_search_results_are_scoped_to_main_results_container&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/search/test_search_regression.py::test_search_results_are_scoped_to_main_results_container&#34;, &#34;duration&#34;: &#34;00:00:25&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/search/test_search_regression.py::test_search_results_are_scoped_to_main_results_container&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:25&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw1] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_results_are_scoped_to_main_results_container\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_results_are_scoped_to_main_results_container\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:327 Searching keyword: &amp;#x27;Logitech&amp;#x27;\nINFO     phongvu-tests-selenium:catalog_page.py:377 Waiting for search results to be ready...\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 1 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:391 Search result state became ready after 7.32 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_results_are_scoped_to_main_results_container&#34;}], &#34;tests/sort/test_sort_verification.py::test_sort_price_orders&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/sort/test_sort_verification.py::test_sort_price_orders&#34;, &#34;duration&#34;: &#34;00:00:38&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/sort/test_sort_verification.py::test_sort_price_orders&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:38&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_price_orders\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_price_orders\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [SORT ADVANCED TEST: ASCENDING PRICES] ---\nProduct: Man hinh HKC MB21V13-U 21.45 inch (Full HD/ VA/ 100Hz/ 7 ms) | Price: 1,290,000 VND\nProduct: Man hinh Aoc 22B15H2/71 21.5 inch (Full HD/ IPS/ 100Hz/ 4 ms) | Price: 1,590,000 VND\nProduct: Man hinh Msi PRO MP225 E12VL 21.45 inch (Full HD/ VA/ 120Hz/ 1 ms) | Price: 1,690,000 VND\nProduct: Man hinh ViewSonic VA2214-H 21.5 inch (Full HD/ IPS/ 100Hz/ 4 ms) | Price: 1,690,000 VND\nProduct: Man hinh HKC MB24V39 23.8 inch (Full HD/ IPS/ 120Hz/ 4 ms) | Price: 1,790,000 VND\nProduct: Man hinh Acer EK221Q E3 UM.WE1SV.301 21.5 inch (Full HD/ IPS/ 100Hz/ 1 ms) | Price: 1,850,000 VND\nProduct: Man hinh Msi PRO MP242L 23.8 inch (Full HD/ IPS/ 100Hz/ 1 ms) | Price: 1,890,000 VND\nProduct: Man hinh Aoc 24B15H3/71 23.8 inch (Full HD/ IPS/ 120Hz/ 1 ms) | Price: 1,890,000 VND\nProduct: Man hinh Msi PRO MP225 21.5 inch (Full HD/ IPS/ 100Hz/ 1 ms) | Price: 1,990,000 VND\nProduct: Man hinh Dell PRO E2026H H0WK2 19.5 inch (HD+/ TN/ 100Hz/ 5 ms) | Price: 1,990,000 VND\n\n--- [SORT ADVANCED TEST: DESCENDING PRICES] ---\nProduct: Man hinh LG 39GX90SA 39 inch (WQHD/ OLED/ 240Hz/ 0.03 ms) | Price: 30,990,000 VND\nProduct: Man hinh Antgamer ANT257PF 24.1 inch (Full HD/ Fast TN/ 750Hz/ 0.8 ms) | Price: 29,090,000 VND\nProduct: Man hinh LG UltraGear 32GS95UV 31.5 inch (4K/ OLED/ 240Hz/ 0.03 ms) | Price: 28,900,000 VND\nProduct: Man hinh Msi MPG 491CQPX QD-OLED 49 inch (DQHD/ QD-OLED/ 240Hz/ 0.03 ms) | Price: 28,490,000 VND\nProduct: Man hinh Samsung LS49CG934SEXXV 49 inch (DQHD/ OLED/ 240Hz/ 0.03 ms) | Price: 28,090,000 VND\nProduct: Man hinh Samsung LS27FG812SEXXV 27 inch (4K/ OLED/ 240Hz/ 0.03 ms) | Price: 26,590,000 VND\nProduct: Man hinh LG 34GX90SA-W 34 inch (UWQHD/ OLED/ 240Hz/ 0.03 ms) | Price: 25,990,000 VND\nProduct: Man hinh LG UltraGear 27GX790A-B 27 inch (2K/ OLED/ 480Hz/ 0.03 ms) | Price: 19,190,000 VND\nProduct: Man hinh Dell U2725QE 27 inch (4K/ IPS/ 120Hz/ 5 ms) | Price: 16,390,000 VND\nProduct: Man hinh Asus ROG Strix OLED XG27ACDMS 26.5 inch (2K/ / 280Hz/ 0.03 ms) | Price: 16,090,000 VND\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 3 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 10 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:test_sort_verification.py:56 DEBUG: prices_asc=[1290000, 1590000, 1690000, 1690000, 1790000, 1850000, 1890000, 1890000, 1990000, 1990000]\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 3 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 10 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:test_sort_verification.py:72 DEBUG: prices_desc=[30990000, 29090000, 28900000, 28490000, 28090000, 26590000, 25990000, 19190000, 16390000, 16090000]\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_price_orders&#34;}], &#34;tests/sort/test_sort_verification.py::test_sort_switching_between_sort_types_keeps_results_visible&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/sort/test_sort_verification.py::test_sort_switching_between_sort_types_keeps_results_visible&#34;, &#34;duration&#34;: &#34;00:00:31&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/sort/test_sort_verification.py::test_sort_switching_between_sort_types_keeps_results_visible&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:31&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_switching_between_sort_types_keeps_results_visible\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_switching_between_sort_types_keeps_results_visible\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Khuy\u1ebfn m\u00e3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Khuy\u1ebfn m\u00e3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 3 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 10 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 3 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 10 prices.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_switching_between_sort_types_keeps_results_visible&#34;}], &#34;tests/sort/test_sort_verification.py::test_sort_changes_order_for_non_price_options&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/sort/test_sort_verification.py::test_sort_changes_order_for_non_price_options&#34;, &#34;duration&#34;: &#34;00:00:55&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/sort/test_sort_verification.py::test_sort_changes_order_for_non_price_options&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:55&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_changes_order_for_non_price_options\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_changes_order_for_non_price_options\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Khuy\u1ebfn m\u00e3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Khuy\u1ebfn m\u00e3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: S\u1ea3n ph\u1ea9m b\u00e1n ch\u1ea1y nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: S\u1ea3n ph\u1ea9m b\u00e1n ch\u1ea1y nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: S\u1ea3n ph\u1ea9m m\u1edbi nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: S\u1ea3n ph\u1ea9m m\u1edbi nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 8 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_changes_order_for_non_price_options&#34;}], &#34;tests/test_regression_filter_sort_search.py::test_preserve_sort_state_on_reload_and_navigation&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_regression_filter_sort_search.py::test_preserve_sort_state_on_reload_and_navigation&#34;, &#34;duration&#34;: &#34;00:00:31&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_regression_filter_sort_search.py::test_preserve_sort_state_on_reload_and_navigation&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:31&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw3] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_preserve_sort_state_on_reload_and_navigation\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_preserve_sort_state_on_reload_and_navigation\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 5 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 5 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 5 prices.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_preserve_sort_state_on_reload_and_navigation&#34;}], &#34;tests/test_black_box_extended.py::test_filter_state_persists_after_reload&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_black_box_extended.py::test_filter_state_persists_after_reload&#34;, &#34;duration&#34;: &#34;00:00:44&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_black_box_extended.py::test_filter_state_persists_after_reload&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:44&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw2] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_state_persists_after_reload\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_state_persists_after_reload\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER EXTENDED TEST: FILTERED PRODUCTS] ---\n1. MacBook Neo 13 inch A18 Pro 8GB 512GB\n2. MacBook Neo 13 inch A18 Pro 8GB 256GB\n3. MacBook Pro M5 Max 16 inch 2026 (18 CPU/ 32 GPU/ 36GB/ 2TB)\n4. MacBook Pro M5 Pro 14 inch 2026 (15 CPU/ 16 GPU/ 24GB/ 2TB)\n5. MacBook Pro M5 Pro 14 inch 2026 (18 CPU/ 20 GPU/ 24GB/ 2TB)\n\n--- [FILTER EXTENDED TEST: PRODUCTS AFTER RELOAD] ---\n1. MacBook Neo 13 inch A18 Pro 8GB 512GB\n2. MacBook Neo 13 inch A18 Pro 8GB 256GB\n3. MacBook Pro M5 Max 16 inch 2026 (18 CPU/ 32 GPU/ 36GB/ 2TB)\n4. MacBook Pro M5 Pro 14 inch 2026 (15 CPU/ 16 GPU/ 24GB/ 2TB)\n5. MacBook Pro M5 Pro 14 inch 2026 (18 CPU/ 20 GPU/ 24GB/ 2TB)\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:300 Waiting for product list to update for filter: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:313 Product list updated after 7.07 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_state_persists_after_reload&#34;}], &#34;tests/test_black_box_extended.py::test_filter_then_sort_price_keeps_filtered_sorted_results&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_black_box_extended.py::test_filter_then_sort_price_keeps_filtered_sorted_results&#34;, &#34;duration&#34;: &#34;00:00:41&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_black_box_extended.py::test_filter_then_sort_price_keeps_filtered_sorted_results&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:41&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;[gw0] win32 -- Python 3.14.0 D:\\Kiem Thu\\.venv\\Scripts\\python.exe\n\n------------------------------ Captured log setup ------------------------------\nINFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_then_sort_price_keeps_filtered_sorted_results\nINFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30\nINFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.\nINFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_then_sort_price_keeps_filtered_sorted_results\n\n----------------------------- Captured stdout call -----------------------------\n\n--- [FILTER + SORT EXTENDED TEST: FILTERED ONLY] ---\n1. MacBook Neo 13 inch A18 Pro 8GB 512GB\n2. MacBook Neo 13 inch A18 Pro 8GB 256GB\n3. MacBook Pro M5 Max 16 inch 2026 (18 CPU/ 32 GPU/ 36GB/ 2TB)\n4. MacBook Pro M5 Pro 14 inch 2026 (15 CPU/ 16 GPU/ 24GB/ 2TB)\n5. MacBook Pro M5 Pro 14 inch 2026 (18 CPU/ 20 GPU/ 24GB/ 2TB)\n\n--- [FILTER + SORT EXTENDED TEST: FILTERED AND SORTED] ---\nProduct: MacBook Neo 13 inch A18 Pro 8GB 256GB | Price: 15,690,000 VND\nProduct: MacBook Neo 13 inch A18 Pro 8GB 512GB | Price: 18,190,000 VND\nProduct: MacBook Air M5 13 inch 2026 (10 CPU/ 8 GPU/ 16GB/ 512GB) | Price: 28,990,000 VND\nProduct: MacBook Air M5 15 inch 2026 (10 CPU/ 10 GPU/ 16GB/ 512GB) | Price: 34,490,000 VND\nProduct: MacBook Air M5 13 inch 2026 (10 CPU/ 10 GPU/ 16GB/ 1TB) | Price: 40,890,000 VND\n\n------------------------------ Captured log call -------------------------------\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:435 Clicking filter checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:491 Clicked checkbox: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:300 Waiting for product list to update for filter: Apple\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\nINFO     phongvu-tests-selenium:catalog_page.py:313 Product list updated after 5.50 seconds.\nINFO     phongvu-tests-selenium:catalog_page.py:497 Applying sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:545 Applied sort option: Gi\u00e1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:267 Extracting visible product prices...\nINFO     phongvu-tests-selenium:catalog_page.py:294 Extracted 5 prices.\nINFO     phongvu-tests-selenium:catalog_page.py:250 Extracting visible product names...\nINFO     phongvu-tests-selenium:catalog_page.py:261 Extracted 10 product names.\n\n---------------------------- Captured log teardown -----------------------------\nINFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_then_sort_price_keeps_filtered_sorted_results&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;report_three_features_full_rerun.html&#34;}"></div>
+    <script>
+      (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')
+
+class DataManager {
+    setManager(data) {
+        const collapsedCategories = [...getCollapsedCategory(data.renderCollapsed)]
+        const collapsedIds = []
+        const tests = Object.values(data.tests).flat().map((test, index) => {
+            const collapsed = collapsedCategories.includes(test.result.toLowerCase())
+            const id = `test_${index}`
+            if (collapsed) {
+                collapsedIds.push(id)
+            }
+            return {
+                ...test,
+                id,
+                collapsed,
+            }
+        })
+        const dataBlob = { ...data, tests }
+        this.data = { ...dataBlob }
+        this.renderData = { ...dataBlob }
+        setCollapsedIds(collapsedIds)
+    }
+
+    get allData() {
+        return { ...this.data }
+    }
+
+    resetRender() {
+        this.renderData = { ...this.data }
+    }
+
+    setRender(data) {
+        this.renderData.tests = [...data]
+    }
+
+    toggleCollapsedItem(id) {
+        this.renderData.tests = this.renderData.tests.map((test) =>
+            test.id === id ? { ...test, collapsed: !test.collapsed } : test,
+        )
+    }
+
+    set allCollapsed(collapsed) {
+        this.renderData = { ...this.renderData, tests: [...this.renderData.tests.map((test) => (
+            { ...test, collapsed }
+        ))] }
+    }
+
+    get testSubset() {
+        return [...this.renderData.tests]
+    }
+
+    get environment() {
+        return this.renderData.environment
+    }
+
+    get initialSort() {
+        return this.data.initialSort
+    }
+}
+
+module.exports = {
+    manager: new DataManager(),
+}
+
+},{"./storage.js":8}],2:[function(require,module,exports){
+const mediaViewer = require('./mediaviewer.js')
+const templateEnvRow = document.getElementById('template_environment_row')
+const templateResult = document.getElementById('template_results-table__tbody')
+
+function htmlToElements(html) {
+    const temp = document.createElement('template')
+    temp.innerHTML = html
+    return temp.content.childNodes
+}
+
+const find = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return elem.querySelector(selector)
+}
+
+const findAll = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return [...elem.querySelectorAll(selector)]
+}
+
+const dom = {
+    getStaticRow: (key, value) => {
+        const envRow = templateEnvRow.content.cloneNode(true)
+        const isObj = typeof value === 'object' && value !== null
+        const values = isObj ? Object.keys(value).map((k) => `${k}: ${value[k]}`) : null
+
+        const valuesElement = htmlToElements(
+            values ? `<ul>${values.map((val) => `<li>${val}</li>`).join('')}<ul>` : `<div>${value}</div>`)[0]
+        const td = findAll('td', envRow)
+        td[0].textContent = key
+        td[1].appendChild(valuesElement)
+
+        return envRow
+    },
+    getResultTBody: ({ testId, id, log, extras, resultsTableRow, tableHtml, result, collapsed }) => {
+        const resultBody = templateResult.content.cloneNode(true)
+        resultBody.querySelector('tbody').classList.add(result.toLowerCase())
+        resultBody.querySelector('tbody').id = testId
+        resultBody.querySelector('.collapsible').dataset.id = id
+
+        resultsTableRow.forEach((html) => {
+            const t = document.createElement('template')
+            t.innerHTML = html
+            resultBody.querySelector('.collapsible').appendChild(t.content)
+        })
+
+        if (log) {
+            // Wrap lines starting with "E" with span.error to color those lines red
+            const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
+            resultBody.querySelector('.log').innerHTML = wrappedLog
+        } else {
+            resultBody.querySelector('.log').remove()
+        }
+
+        if (collapsed) {
+            resultBody.querySelector('.collapsible > .col-result')?.classList.add('collapsed')
+            resultBody.querySelector('.extras-row').classList.add('hidden')
+        } else {
+            resultBody.querySelector('.collapsible > .col-result')?.classList.remove('collapsed')
+        }
+
+        const media = []
+        extras?.forEach(({ name, format_type, content }) => {
+            if (['image', 'video'].includes(format_type)) {
+                media.push({ path: content, name, format_type })
+            }
+
+            if (format_type === 'html') {
+                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
+            }
+        })
+        mediaViewer.setup(resultBody, media)
+
+        // Add custom html from the pytest_html_results_table_html hook
+        tableHtml?.forEach((item) => {
+            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
+        })
+
+        return resultBody
+    },
+}
+
+module.exports = {
+    dom,
+    htmlToElements,
+    find,
+    findAll,
+}
+
+},{"./mediaviewer.js":6}],3:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const storageModule = require('./storage.js')
+
+const getFilteredSubSet = (filter) =>
+    manager.allData.tests.filter(({ result }) => filter.includes(result.toLowerCase()))
+
+const doInitFilter = () => {
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+}
+
+const doFilter = (type, show) => {
+    if (show) {
+        storageModule.showCategory(type)
+    } else {
+        storageModule.hideCategory(type)
+    }
+
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+
+    const sortColumn = storageModule.getSort()
+    doSort(sortColumn, true)
+}
+
+module.exports = {
+    doFilter,
+    doInitFilter,
+}
+
+},{"./datamanager.js":1,"./sort.js":7,"./storage.js":8}],4:[function(require,module,exports){
+const { redraw, bindEvents, renderStatic } = require('./main.js')
+const { doInitFilter } = require('./filter.js')
+const { doInitSort } = require('./sort.js')
+const { manager } = require('./datamanager.js')
+const data = JSON.parse(document.getElementById('data-container').dataset.jsonblob)
+
+function init() {
+    manager.setManager(data)
+    doInitFilter()
+    doInitSort()
+    renderStatic()
+    redraw()
+    bindEvents()
+}
+
+init()
+
+},{"./datamanager.js":1,"./filter.js":3,"./main.js":5,"./sort.js":7}],5:[function(require,module,exports){
+const { dom, find, findAll } = require('./dom.js')
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const { doFilter } = require('./filter.js')
+const {
+    getVisible,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    getSortDirection,
+    possibleFilters,
+} = require('./storage.js')
+
+const removeChildren = (node) => {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
+const renderStatic = () => {
+    const renderEnvironmentTable = () => {
+        const environment = manager.environment
+        const rows = Object.keys(environment).map((key) => dom.getStaticRow(key, environment[key]))
+        const table = document.getElementById('environment')
+        removeChildren(table)
+        rows.forEach((row) => table.appendChild(row))
+    }
+    renderEnvironmentTable()
+}
+
+const addItemToggleListener = (elem) => {
+    elem.addEventListener('click', ({ target }) => {
+        const id = target.parentElement.dataset.id
+        manager.toggleCollapsedItem(id)
+
+        const collapsedIds = getCollapsedIds()
+        if (collapsedIds.includes(id)) {
+            const updated = collapsedIds.filter((item) => item !== id)
+            setCollapsedIds(updated)
+        } else {
+            collapsedIds.push(id)
+            setCollapsedIds(collapsedIds)
+        }
+        redraw()
+    })
+}
+
+const renderContent = (tests) => {
+    const sortAttr = getSort(manager.initialSort)
+    const sortAsc = JSON.parse(getSortDirection())
+    const rows = tests.map(dom.getResultTBody)
+    const table = document.getElementById('results-table')
+    const tableHeader = document.getElementById('results-table-head')
+
+    const newTable = document.createElement('table')
+    newTable.id = 'results-table'
+
+    // remove all sorting classes and set the relevant
+    findAll('.sortable', tableHeader).forEach((elem) => elem.classList.remove('asc', 'desc'))
+    tableHeader.querySelector(`.sortable[data-column-type="${sortAttr}"]`)?.classList.add(sortAsc ? 'desc' : 'asc')
+    newTable.appendChild(tableHeader)
+
+    if (!rows.length) {
+        const emptyTable = document.getElementById('template_results-table__body--empty').content.cloneNode(true)
+        newTable.appendChild(emptyTable)
+    } else {
+        rows.forEach((row) => {
+            if (!!row) {
+                findAll('.collapsible td:not(.col-links', row).forEach(addItemToggleListener)
+                find('.logexpander', row).addEventListener('click',
+                    (evt) => evt.target.parentNode.classList.toggle('expanded'),
+                )
+                newTable.appendChild(row)
+            }
+        })
+    }
+
+    table.replaceWith(newTable)
+}
+
+const renderDerived = () => {
+    const currentFilter = getVisible()
+    possibleFilters.forEach((result) => {
+        const input = document.querySelector(`input[data-test-result="${result}"]`)
+        input.checked = currentFilter.includes(result)
+    })
+}
+
+const bindEvents = () => {
+    const filterColumn = (evt) => {
+        const { target: element } = evt
+        const { testResult } = element.dataset
+
+        doFilter(testResult, element.checked)
+        const collapsedIds = getCollapsedIds()
+        const updated = manager.renderData.tests.map((test) => {
+            return {
+                ...test,
+                collapsed: collapsedIds.includes(test.id),
+            }
+        })
+        manager.setRender(updated)
+        redraw()
+    }
+
+    const header = document.getElementById('environment-header')
+    header.addEventListener('click', () => {
+        const table = document.getElementById('environment')
+        table.classList.toggle('hidden')
+        header.classList.toggle('collapsed')
+    })
+
+    findAll('input[name="filter_checkbox"]').forEach((elem) => {
+        elem.addEventListener('click', filterColumn)
+    })
+
+    findAll('.sortable').forEach((elem) => {
+        elem.addEventListener('click', (evt) => {
+            const { target: element } = evt
+            const { columnType } = element.dataset
+            doSort(columnType)
+            redraw()
+        })
+    })
+
+    document.getElementById('show_all_details').addEventListener('click', () => {
+        manager.allCollapsed = false
+        setCollapsedIds([])
+        redraw()
+    })
+    document.getElementById('hide_all_details').addEventListener('click', () => {
+        manager.allCollapsed = true
+        const allIds = manager.renderData.tests.map((test) => test.id)
+        setCollapsedIds(allIds)
+        redraw()
+    })
+}
+
+const redraw = () => {
+    const { testSubset } = manager
+
+    renderContent(testSubset)
+    renderDerived()
+}
+
+module.exports = {
+    redraw,
+    bindEvents,
+    renderStatic,
+}
+
+},{"./datamanager.js":1,"./dom.js":2,"./filter.js":3,"./sort.js":7,"./storage.js":8}],6:[function(require,module,exports){
+class MediaViewer {
+    constructor(assets) {
+        this.assets = assets
+        this.index = 0
+    }
+
+    nextActive() {
+        this.index = this.index === this.assets.length - 1 ? 0 : this.index + 1
+        return [this.activeFile, this.index]
+    }
+
+    prevActive() {
+        this.index = this.index === 0 ? this.assets.length - 1 : this.index -1
+        return [this.activeFile, this.index]
+    }
+
+    get currentIndex() {
+        return this.index
+    }
+
+    get activeFile() {
+        return this.assets[this.index]
+    }
+}
+
+
+const setup = (resultBody, assets) => {
+    if (!assets.length) {
+        resultBody.querySelector('.media').classList.add('hidden')
+        return
+    }
+
+    const mediaViewer = new MediaViewer(assets)
+    const container = resultBody.querySelector('.media-container')
+    const leftArrow = resultBody.querySelector('.media-container__nav--left')
+    const rightArrow = resultBody.querySelector('.media-container__nav--right')
+    const mediaName = resultBody.querySelector('.media__name')
+    const counter = resultBody.querySelector('.media__counter')
+    const imageEl = resultBody.querySelector('img')
+    const sourceEl = resultBody.querySelector('source')
+    const videoEl = resultBody.querySelector('video')
+
+    const setImg = (media, index) => {
+        if (media?.format_type === 'image') {
+            imageEl.src = media.path
+
+            imageEl.classList.remove('hidden')
+            videoEl.classList.add('hidden')
+        } else if (media?.format_type === 'video') {
+            sourceEl.src = media.path
+
+            videoEl.classList.remove('hidden')
+            imageEl.classList.add('hidden')
+        }
+
+        mediaName.innerText = media?.name
+        counter.innerText = `${index + 1} / ${assets.length}`
+    }
+    setImg(mediaViewer.activeFile, mediaViewer.currentIndex)
+
+    const moveLeft = () => {
+        const [media, index] = mediaViewer.prevActive()
+        setImg(media, index)
+    }
+    const doRight = () => {
+        const [media, index] = mediaViewer.nextActive()
+        setImg(media, index)
+    }
+    const openImg = () => {
+        window.open(mediaViewer.activeFile.path, '_blank')
+    }
+    if (assets.length === 1) {
+        container.classList.add('media-container--fullscreen')
+    } else {
+        leftArrow.addEventListener('click', moveLeft)
+        rightArrow.addEventListener('click', doRight)
+    }
+    imageEl.addEventListener('click', openImg)
+}
+
+module.exports = {
+    setup,
+}
+
+},{}],7:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const storageModule = require('./storage.js')
+
+const genericSort = (list, key, ascending, customOrder) => {
+    let sorted
+    if (customOrder) {
+        sorted = list.sort((a, b) => {
+            const aValue = a.result.toLowerCase()
+            const bValue = b.result.toLowerCase()
+
+            const aIndex = customOrder.findIndex((item) => item.toLowerCase() === aValue)
+            const bIndex = customOrder.findIndex((item) => item.toLowerCase() === bValue)
+
+            // Compare the indices to determine the sort order
+            return aIndex - bIndex
+        })
+    } else {
+        sorted = list.sort((a, b) => a[key] === b[key] ? 0 : a[key] > b[key] ? 1 : -1)
+    }
+
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const durationSort = (list, ascending) => {
+    const parseDuration = (duration) => {
+        if (duration.includes(':')) {
+            // If it's in the format "HH:mm:ss"
+            const [hours, minutes, seconds] = duration.split(':').map(Number)
+            return (hours * 3600 + minutes * 60 + seconds) * 1000
+        } else {
+            // If it's in the format "nnn ms"
+            return parseInt(duration)
+        }
+    }
+    const sorted = list.sort((a, b) => parseDuration(a['duration']) - parseDuration(b['duration']))
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const doInitSort = () => {
+    const type = storageModule.getSort(manager.initialSort)
+    const ascending = storageModule.getSortDirection()
+    const list = manager.testSubset
+    const initialOrder = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed', 'Skipped', 'Passed']
+
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    if (type?.toLowerCase() === 'original') {
+        manager.setRender(list)
+    } else {
+        let sortedList
+        switch (type) {
+        case 'duration':
+            sortedList = durationSort(list, ascending)
+            break
+        case 'result':
+            sortedList = genericSort(list, type, ascending, initialOrder)
+            break
+        default:
+            sortedList = genericSort(list, type, ascending)
+            break
+        }
+        manager.setRender(sortedList)
+    }
+}
+
+const doSort = (type, skipDirection) => {
+    const newSortType = storageModule.getSort(manager.initialSort) !== type
+    const currentAsc = storageModule.getSortDirection()
+    let ascending
+    if (skipDirection) {
+        ascending = currentAsc
+    } else {
+        ascending = newSortType ? false : !currentAsc
+    }
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    const list = manager.testSubset
+    const sortedList = type === 'duration' ? durationSort(list, ascending) : genericSort(list, type, ascending)
+    manager.setRender(sortedList)
+}
+
+module.exports = {
+    doInitSort,
+    doSort,
+}
+
+},{"./datamanager.js":1,"./storage.js":8}],8:[function(require,module,exports){
+const possibleFilters = [
+    'passed',
+    'skipped',
+    'failed',
+    'error',
+    'xfailed',
+    'xpassed',
+    'rerun',
+]
+
+const getVisible = () => {
+    const url = new URL(window.location.href)
+    const settings = new URLSearchParams(url.search).get('visible')
+    const lower = (item) => {
+        const lowerItem = item.toLowerCase()
+        if (possibleFilters.includes(lowerItem)) {
+            return lowerItem
+        }
+        return null
+    }
+    return settings === null ?
+        possibleFilters :
+        [...new Set(settings?.split(',').map(lower).filter((item) => item))]
+}
+
+const hideCategory = (categoryToHide) => {
+    const url = new URL(window.location.href)
+    const visibleParams = new URLSearchParams(url.search).get('visible')
+    const currentVisible = visibleParams ? visibleParams.split(',') : [...possibleFilters]
+    const settings = [...new Set(currentVisible)].filter((f) => f !== categoryToHide).join(',')
+
+    url.searchParams.set('visible', settings)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const showCategory = (categoryToShow) => {
+    if (typeof window === 'undefined') {
+        return
+    }
+    const url = new URL(window.location.href)
+    const currentVisible = new URLSearchParams(url.search).get('visible')?.split(',').filter(Boolean) ||
+        [...possibleFilters]
+    const settings = [...new Set([categoryToShow, ...currentVisible])]
+    const noFilter = possibleFilters.length === settings.length || !settings.length
+
+    noFilter ? url.searchParams.delete('visible') : url.searchParams.set('visible', settings.join(','))
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getSort = (initialSort) => {
+    const url = new URL(window.location.href)
+    let sort = new URLSearchParams(url.search).get('sort')
+    if (!sort) {
+        sort = initialSort || 'result'
+    }
+    return sort
+}
+
+const setSort = (type) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('sort', type)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getCollapsedCategory = (renderCollapsed) => {
+    let categories
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        const collapsedItems = new URLSearchParams(url.search).get('collapsed')
+        switch (true) {
+        case !renderCollapsed && collapsedItems === null:
+            categories = ['passed']
+            break
+        case collapsedItems?.length === 0 || /^["']{2}$/.test(collapsedItems):
+            categories = []
+            break
+        case /^all$/.test(collapsedItems) || collapsedItems === null && /^all$/.test(renderCollapsed):
+            categories = [...possibleFilters]
+            break
+        default:
+            categories = collapsedItems?.split(',').map((item) => item.toLowerCase()) || renderCollapsed
+            break
+        }
+    } else {
+        categories = []
+    }
+    return categories
+}
+
+const getSortDirection = () => JSON.parse(sessionStorage.getItem('sortAsc')) || false
+const setSortDirection = (ascending) => sessionStorage.setItem('sortAsc', ascending)
+
+const getCollapsedIds = () => JSON.parse(sessionStorage.getItem('collapsedIds')) || []
+const setCollapsedIds = (list) => sessionStorage.setItem('collapsedIds', JSON.stringify(list))
+
+module.exports = {
+    getVisible,
+    hideCategory,
+    showCategory,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    setSort,
+    getSortDirection,
+    setSortDirection,
+    getCollapsedCategory,
+    possibleFilters,
+}
+
+},{}]},{},[4]);
+    </script>
+  </footer>
+  </body>
+</html>
