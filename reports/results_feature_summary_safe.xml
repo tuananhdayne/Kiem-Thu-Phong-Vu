@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="31" time="301.247" timestamp="2026-06-08T23:21:13.664532+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_functional" name="test_search_load_more_preserves_keyword" time="46.022" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="56.257" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="36.193" /><testcase classname="tests.search.test_search_functional" name="test_search_autocomplete_suggestion_click_navigates_to_results" time="37.147" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="95.879" /><testcase classname="tests.search.test_search_functional" name="test_search_enter_vs_click_icon_same_result" time="31.294" /><testcase classname="tests.search.test_search_functional" name="test_search_deeplink_query_loads_correct_results" time="25.882" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="44.107"><failure message="selenium.common.exceptions.TimeoutException: Message:">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="fce8de3968f6b38598386cc0666d7d72")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_unfilter_restores_list(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 25)
+    
+        click_checkbox_by_text(driver, brand)
+&gt;       wait.until(lambda d: "brands=apple" in d.current_url.lower())
+
+tests\filter\test_filter_advanced.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.support.wait.WebDriverWait (session="fce8de3968f6b38598386cc0666d7d72")&gt;
+method = &lt;function test_unfilter_restores_list.&lt;locals&gt;.&lt;lambda&gt; at 0x0000013C7019F8A0&gt;
+message = ''
+
+    def until(self, method: Callable[[D], Literal[False] | T], message: str = "") -&gt; T:
+        """Wait until the method returns a value that is not False.
+    
+        Calls the method provided with the driver as an argument until the
+        return value does not evaluate to ``False``.
+    
+        Args:
+            method: A callable object that takes a WebDriver instance as an
+                argument.
+            message: Optional message for TimeoutException.
+    
+        Returns:
+            The result of the last call to `method`.
+    
+        Raises:
+            TimeoutException: If 'method' does not return a truthy value within
+                the WebDriverWait object's timeout.
+    
+        Example:
+            &gt;&gt;&gt; from selenium.webdriver.common.by import By
+            &gt;&gt;&gt; from selenium.webdriver.support.ui import WebDriverWait
+            &gt;&gt;&gt; from selenium.webdriver.support import expected_conditions as EC
+            &gt;&gt;&gt;
+            &gt;&gt;&gt; # Wait until an element is visible on the page
+            &gt;&gt;&gt; wait = WebDriverWait(driver, 10)
+            &gt;&gt;&gt; element = wait.until(EC.visibility_of_element_located((By.ID, "exampleId")))
+            &gt;&gt;&gt; print(element.text)
+        """
+        screen = None
+        stacktrace = None
+    
+        end_time = time.monotonic() + self._timeout
+        while True:
+            try:
+                value = method(self._driver)
+                if value:
+                    return value
+            except self._ignored_exceptions as exc:
+                screen = getattr(exc, "screen", None)
+                stacktrace = getattr(exc, "stacktrace", None)
+            if time.monotonic() &gt; end_time:
+                break
+            time.sleep(self._poll)
+&gt;       raise TimeoutException(message, screen, stacktrace)
+E       selenium.common.exceptions.TimeoutException: Message:
+
+.venv\Lib\site-packages\selenium\webdriver\support\wait.py:121: TimeoutException</failure></testcase><testcase classname="tests.search.test_search_regression" name="test_search_empty_query" time="12.623" /><testcase classname="tests.search.test_search_regression" name="test_search_results_are_scoped_to_main_results_container" time="36.172" /><testcase classname="tests.search.test_search_regression" name="test_search_then_sort_price_keeps_relevant_sorted_results" time="31.525" /><testcase classname="tests.search.test_search_regression" name="test_search_change_keyword_updates_results" time="69.488" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[logitech]" time="29.567" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech]" time="25.633" /><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="39.693" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech!@#]" time="31.299" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="32.319" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitechk]" time="40.820" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[  Logitech  ]" time="38.992" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logtech]" time="38.866" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit ech]" time="37.633" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_price_orders" time="40.991" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit3ch]" time="27.488" /><testcase classname="tests.search.test_search_variants" name="test_search_not_found_shows_no_results" time="17.190" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_changes_order_for_non_price_options" time="67.352" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="51.661" /><testcase classname="tests.test_negative_cases" name="test_missing_selector_raises" time="7.663" /><testcase classname="tests.test_regression_filter_sort_search" name="test_preserve_sort_state_on_reload_and_navigation" time="14.044"><failure message="selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame&#10;  (Session info: chrome=148.0.7778.218); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception&#10;Stacktrace:&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809a7de5+14895]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809a7e50+14900]&#10;&#09;chromedriver!(No symbol) [0x7ff78070d5ad]&#10;&#09;chromedriver!(No symbol) [0x7ff780715521]&#10;&#09;chromedriver!(No symbol) [0x7ff78071897f]&#10;&#09;chromedriver!(No symbol) [0x7ff7807b5c7d]&#10;&#09;chromedriver!(No symbol) [0x7ff78079005a]&#10;&#09;chromedriver!(No symbol) [0x7ff7807b486f]&#10;&#09;chromedriver!(No symbol) [0x7ff780759df8]&#10;&#09;chromedriver!(No symbol) [0x7ff78075ace3]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff780cbcc49+3296f9]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff780cb7375+323e25]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff780cdbc82+348732]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809c6045+32af5]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809cecec+3b79c]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809b1bc4+1e674]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809b1d54+1e804]&#10;&#09;chromedriver!GetHandleVerifier [0x7ff7809960e7+2b97]&#10;&#09;KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]&#10;&#09;ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="3acdc011efe123f8d7263ff5073f2ba1")&gt;
+option_text = 'Giá tăng dần', timeout = 5
+
+    def apply_sort_option(driver, option_text, timeout=5):
+        """Apply a visible sort option."""
+        logger.info("Applying sort option: %s", option_text)
+        start_time = time.time()
+        sort_container = None
+        while time.time() - start_time &lt; timeout:
+            try:
+                sort_container = _find_sort_container(driver)
+                if sort_container.is_displayed():
+                    break
+            except Exception:
+                pass
+            time.sleep(0.25)
+    
+        if not sort_container:
+            raise Exception("Could not find sort container")
+    
+        option_node = None
+        nodes = sort_container.find_elements(By.XPATH, ".//*[normalize-space()]")
+    
+        for node in nodes:
+            try:
+                if node.is_displayed() and _normalize_text(node.text) == _normalize_text(option_text):
+                    option_node = node
+                    break
+            except Exception:
+                pass
+    
+        if not option_node:
+            for node in nodes:
+                try:
+                    node_text = _normalize_text(node.text)
+                    requested_text = _normalize_text(option_text)
+                    if node.is_displayed() and (requested_text in node_text or node_text in requested_text):
+                        option_node = node
+                        break
+                except Exception:
+                    pass
+    
+        if not option_node:
+            available = [node.text.strip() for node in nodes if node.text.strip()]
+            raise AssertionError(f"Sort option not found: {option_text}. Available: {available}")
+    
+        try:
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", option_node)
+            time.sleep(0.2)
+&gt;           option_node.click()
+
+pages\catalog_page.py:541: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:114: in click
+    self._execute(Command.CLICK_ELEMENT)
+.venv\Lib\site-packages\selenium\webdriver\remote\webelement.py:508: in _execute
+    return self._parent.execute(command, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:468: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000210E28DE950&gt;
+response = {'status': 404, 'value': '{"value":{"error":"stale element reference","message":"stale element reference: stale elemen...7+2b97]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]\\n\\tntdll!RtlUserThreadStart [0x7ff8a890427c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -&gt; None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "&lt;anonymous&gt;")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "&lt;anonymous&gt;")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+&gt;       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame
+E         (Session info: chrome=148.0.7778.218); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff7809a7de5+14895]
+E       	chromedriver!GetHandleVerifier [0x7ff7809a7e50+14900]
+E       	chromedriver!(No symbol) [0x7ff78070d5ad]
+E       	chromedriver!(No symbol) [0x7ff780715521]
+E       	chromedriver!(No symbol) [0x7ff7807185e5]
+E       	chromedriver!(No symbol) [0x7ff7807186af]
+E       	chromedriver!(No symbol) [0x7ff780769ae0]
+E       	chromedriver!(No symbol) [0x7ff78075bc4f]
+E       	chromedriver!(No symbol) [0x7ff78079005a]
+E       	chromedriver!(No symbol) [0x7ff78075b566]
+E       	chromedriver!(No symbol) [0x7ff7807b486f]
+E       	chromedriver!(No symbol) [0x7ff780759df8]
+E       	chromedriver!(No symbol) [0x7ff78075ace3]
+E       	chromedriver!GetHandleVerifier [0x7ff780cbcc49+3296f9]
+E       	chromedriver!GetHandleVerifier [0x7ff780cb7375+323e25]
+E       	chromedriver!GetHandleVerifier [0x7ff780cdbc82+348732]
+E       	chromedriver!GetHandleVerifier [0x7ff7809c6045+32af5]
+E       	chromedriver!GetHandleVerifier [0x7ff7809cecec+3b79c]
+E       	chromedriver!GetHandleVerifier [0x7ff7809b1bc4+1e674]
+E       	chromedriver!GetHandleVerifier [0x7ff7809b1d54+1e804]
+E       	chromedriver!GetHandleVerifier [0x7ff7809960e7+2b97]
+E       	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+E       	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+.venv\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: StaleElementReferenceException
+
+During handling of the above exception, another exception occurred:
+
+driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="3acdc011efe123f8d7263ff5073f2ba1")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
+        """Regression: price ascending sort state is preserved after reload and navigation back."""
+        driver.get(test_config["pages"]["laptop"])
+        wait = WebDriverWait(driver, 20)
+    
+        sort_option = test_config.get("test_data", {}).get("sort_option") or test_config["test_data"].get("sort_option_candidates", [None])[0]
+        assert sort_option, "Missing sort_option in config"
+    
+        try:
+            resolved = resolve_available_text(driver, test_config["test_data"].get("sort_option_candidates", [sort_option]))
+        except AssertionError:
+            resolved = sort_option
+    
+&gt;       apply_sort_option(driver, resolved)
+
+tests\test_regression_filter_sort_search.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\catalog_page.py:543: in apply_sort_option
+    driver.execute_script("arguments[0].click();", option_node)
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:578: in execute_script
+    return self.execute(command, {"script": script, "args": converted_args})["value"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\selenium\webdriver\remote\webdriver.py:468: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x00000210E28DE950&gt;
+response = {'status': 404, 'value': '{"value":{"error":"stale element reference","message":"stale element reference: stale elemen...7+2b97]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]\\n\\tntdll!RtlUserThreadStart [0x7ff8a890427c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -&gt; None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "&lt;anonymous&gt;")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "&lt;anonymous&gt;")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+&gt;       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.StaleElementReferenceException: Message: stale element reference: stale element not found in the current frame
+E         (Session info: chrome=148.0.7778.218); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#staleelementreferenceexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff7809a7de5+14895]
+E       	chromedriver!GetHandleVerifier [0x7ff7809a7e50+14900]
+E       	chromedriver!(No symbol) [0x7ff78070d5ad]
+E       	chromedriver!(No symbol) [0x7ff780715521]
+E       	chromedriver!(No symbol) [0x7ff78071897f]
+E       	chromedriver!(No symbol) [0x7ff7807b5c7d]
+E       	chromedriver!(No symbol) [0x7ff78079005a]
+E       	chromedriver!(No symbol) [0x7ff7807b486f]
+E       	chromedriver!(No symbol) [0x7ff780759df8]
+E       	chromedriver!(No symbol) [0x7ff78075ace3]
+E       	chromedriver!GetHandleVerifier [0x7ff780cbcc49+3296f9]
+E       	chromedriver!GetHandleVerifier [0x7ff780cb7375+323e25]
+E       	chromedriver!GetHandleVerifier [0x7ff780cdbc82+348732]
+E       	chromedriver!GetHandleVerifier [0x7ff7809c6045+32af5]
+E       	chromedriver!GetHandleVerifier [0x7ff7809cecec+3b79c]
+E       	chromedriver!GetHandleVerifier [0x7ff7809b1bc4+1e674]
+E       	chromedriver!GetHandleVerifier [0x7ff7809b1d54+1e804]
+E       	chromedriver!GetHandleVerifier [0x7ff7809960e7+2b97]
+E       	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+E       	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+.venv\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: StaleElementReferenceException</failure></testcase><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="43.325" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_switching_between_sort_types_keeps_results_visible" time="21.685" /><testcase classname="tests.test_negative_cases" name="test_slow_page_timeout" time="6.096" /></testsuite></testsuites>

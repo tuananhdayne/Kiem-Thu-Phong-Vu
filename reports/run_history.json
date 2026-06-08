@@ -1,5 +1,25 @@
 [
   {
+    "time": "2026-06-08T16:26:14.931189Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q -o addopts= -n 4 tests -m not destructive and not security --html=reports/report_feature_summary_safe.html --self-contained-html --junitxml=reports/results_feature_summary_safe.xml",
+    "returncode": 1,
+    "duration": 301.27
+  },
+  {
+    "time": "2026-06-08T16:19:54.609198Z",
+    "run_id": "-",
+    "git_commit": "-",
+    "description": "",
+    "mode": "Selenium CLI (Full suite)",
+    "target": "-q -o addopts= -n 4 tests -m not destructive and not security --html=reports/report_feature_summary_safe.html --self-contained-html --junitxml=reports/results_feature_summary_safe.xml",
+    "returncode": 1,
+    "duration": 338.59
+  },
+  {
     "time": "2026-06-05T17:50:05.013249Z",
     "run_id": "50e4fd16-8ab8-4e2f-a297-8d2f481e65c0",
     "git_commit": "ba51f24",
@@ -520,27 +540,5 @@
     "headless": true,
     "returncode": 5,
     "duration": 4.73
-  },
-  {
-    "time": "2026-06-04T07:25:45.615056Z",
-    "run_id": "f7f9781c-840a-4c99-bfba-dbe4d41c4393",
-    "git_commit": "ff3e692",
-    "mode": "All including destructive/security",
-    "target": "tests (all)",
-    "description": "",
-    "workers": 4,
-    "headless": true,
-    "returncode": 1,
-    "duration": 223.48
-  },
-  {
-    "time": "2026-06-04T07:20:09.551446Z",
-    "run_id": "-",
-    "git_commit": "-",
-    "description": "",
-    "mode": "Selenium CLI (Full suite)",
-    "target": "tests/search/test_search_functional.py -k test_search_load_more_preserves_keyword --junitxml=reports/results.xml --html=reports/report.html --self-contained-html -o addopts= -v",
-    "returncode": 0,
-    "duration": 17.15
   }
 ]
