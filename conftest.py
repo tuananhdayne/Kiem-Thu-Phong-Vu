@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -16,11 +17,17 @@ from selenium.webdriver.chrome.options import Options
 from utils.artifacts import capture_screenshot
 from utils.config_loader import load_config
 from utils.logging_utils import configure_logging
+from utils.testcase_ids import testcase_meta_for_nodeid
 
 # Use a consistent logger name across the project
 LOGGER = logging.getLogger("phongvu-tests-selenium")
 _WORKER_BROWSER = {"browser": None, "user_data_dir": None, "chromedriver_pid": None}
 _SELENIUM_CHROMEDRIVER_PIDS = set()
+
+
+def _console_safe(value):
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    return str(value).encode(encoding, errors="replace").decode(encoding, errors="replace")
 
 
 def _kill_windows_process_tree(pid):
@@ -89,6 +96,11 @@ def pytest_collection_modifyitems(config, items):
     skip_destructive = pytest.mark.skip(reason="destructive test skipped; pass --run-destructive to run it")
     skip_security = pytest.mark.skip(reason="security payload test skipped; pass --run-security to run it")
     for item in items:
+        testcase_meta = testcase_meta_for_nodeid(item.nodeid)
+        if testcase_meta:
+            item.user_properties.append(("test_case_id", testcase_meta["id"]))
+            if testcase_meta.get("title"):
+                item.user_properties.append(("test_case_title", testcase_meta["title"]))
         if "destructive" in item.keywords and not config.getoption("--run-destructive"):
             item.add_marker(skip_destructive)
         if "security" in item.keywords and not config.getoption("--run-security"):
@@ -97,6 +109,11 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_runtest_setup(item):
     """Ghi log khi một test bắt đầu."""
+    testcase_meta = testcase_meta_for_nodeid(item.nodeid)
+    if testcase_meta:
+        title = _console_safe(testcase_meta.get("title") or item.name)
+        LOGGER.info("TEST CASE ID: %s | %s | nodeid=%s", testcase_meta["id"], title, item.nodeid)
+        print(f"\n=== TEST CASE ID: {testcase_meta['id']} | {title} ===")
     LOGGER.info("START TEST: %s", item.name)
 
 
