@@ -32,16 +32,16 @@ def test_filter_state_persists_after_reload(driver, test_config):
     driver.get(test_config["pages"]["laptop"])
     old_names = extract_product_names(driver, test_config, limit=10)
 
-    click_checkbox_by_text(driver, brand)
-    WebDriverWait(driver, 12).until(lambda d: "brands=apple" in d.current_url.lower())
-    filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=12)
+    click_checkbox_by_text(driver, brand, desired_state=True)
+    WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
+    filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=8)
     print("\n--- [FILTER EXTENDED TEST: FILTERED PRODUCTS] ---")
     for i, name in enumerate(filtered_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
     assert filtered_names, "No products after applying brand filter"
 
     driver.refresh()
-    WebDriverWait(driver, 12).until(lambda d: "brands=apple" in d.current_url.lower())
+    WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
     reloaded_names = extract_product_names(driver, test_config, limit=10)
     print("\n--- [FILTER EXTENDED TEST: PRODUCTS AFTER RELOAD] ---")
     for i, name in enumerate(reloaded_names[:5], 1):
@@ -63,9 +63,9 @@ def test_filter_then_sort_price_keeps_filtered_sorted_results(driver, test_confi
 
     driver.get(test_config["pages"]["laptop"])
     old_names = extract_product_names(driver, test_config, limit=10)
-    click_checkbox_by_text(driver, brand)
-    WebDriverWait(driver, 12).until(lambda d: "brands=apple" in d.current_url.lower())
-    filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=12)
+    click_checkbox_by_text(driver, brand, desired_state=True)
+    WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
+    filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=8)
     print("\n--- [FILTER + SORT EXTENDED TEST: FILTERED ONLY] ---")
     for i, name in enumerate(filtered_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -75,7 +75,7 @@ def test_filter_then_sort_price_keeps_filtered_sorted_results(driver, test_confi
     apply_sort_option(driver, sort_option)
 
     prices = []
-    deadline = time.time() + 8
+    deadline = time.time() + 6
     while time.time() < deadline:
         prices = extract_latest_prices(driver, test_config, limit=5)
         if len(prices) >= 3 and is_sorted(prices, ascending=True):

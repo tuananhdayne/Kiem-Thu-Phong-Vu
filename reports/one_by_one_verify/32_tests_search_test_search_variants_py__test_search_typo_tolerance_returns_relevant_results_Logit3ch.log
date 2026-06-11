@@ -1,0 +1,26 @@
+2026-06-11 13:33:27 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/search/test_search_variants.py::test_search_typo_tolerance_returns_relevant_results[Logit3ch] 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_typo_tolerance_returns_relevant_results[Logit3ch]
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_typo_tolerance_returns_relevant_results[Logit3ch]
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:391 Searching keyword: 'Logit3ch'
+INFO     phongvu-tests-selenium:catalog_page.py:441 Waiting for search results to be ready...
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 2 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:455 Search result state became ready after 2.07 seconds.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 5 product names via fast DOM path.
+INFO     phongvu-tests-selenium:test_search_variants.py:14 --- [SEARCH RESULTS: typo] keyword='Logit3ch' ---
+INFO     phongvu-tests-selenium:test_search_variants.py:22 1. Chu\u1ed9t Logitech B100\nINFO     phongvu-tests-selenium:test_search_variants.py:22 2. B�n ph�m Logitech K120
+INFO     phongvu-tests-selenium:test_search_variants.py:22 3. Chu\u1ed9t Logitech M331\nINFO     phongvu-tests-selenium:test_search_variants.py:22 4. Chu\u1ed9t Logitech B175\nINFO     phongvu-tests-selenium:test_search_variants.py:22 5. Chu\u1ed9t Logitech G304\nPASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_typo_tolerance_returns_relevant_results[Logit3ch]
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\32_tests_search_test_search_variants_py__test_search_typo_tolerance_returns_relevant_results_Logit3ch.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/32_tests_search_test_search_variants_py__test_search_typo_tolerance_returns_relevant_results_Logit3ch.html -
+============================= 1 passed in 36.22s ==============================

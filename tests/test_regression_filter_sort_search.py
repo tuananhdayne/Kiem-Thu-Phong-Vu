@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from pages.catalog_page import apply_sort_option, extract_latest_prices, resolve_available_text
+from pages.catalog_page import apply_sort_option, extract_latest_prices, log_test_evidence, resolve_available_text
 from utils.parsers import is_sorted
 
 pytestmark = pytest.mark.regression
@@ -29,6 +29,12 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
     wait.until(lambda d: "sort=" in d.current_url.lower() or "order=" in d.current_url.lower())
 
     prices_before = extract_latest_prices(driver, test_config, limit=5)
+    log_test_evidence(
+        "SORT STATE BEFORE RELOAD",
+        option=resolved,
+        url=driver.current_url,
+        prices=[f"{price:,} VND" for price in prices_before],
+    )
     assert prices_before, "Could not extract prices after sorting"
 
     driver.refresh()
@@ -36,6 +42,12 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
     time.sleep(1)
 
     prices_after_reload = extract_latest_prices(driver, test_config, limit=5)
+    log_test_evidence(
+        "SORT STATE AFTER RELOAD",
+        option=resolved,
+        url=driver.current_url,
+        prices=[f"{price:,} VND" for price in prices_after_reload],
+    )
     assert prices_after_reload, "Could not extract prices after reload"
     assert is_sorted(prices_after_reload, ascending=True), f"Prices are not sorted after reload: {prices_after_reload}"
 
@@ -47,4 +59,10 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
     time.sleep(1)
 
     prices_after_nav = extract_latest_prices(driver, test_config, limit=5)
+    log_test_evidence(
+        "SORT STATE AFTER NAVIGATION BACK",
+        option=resolved,
+        url=driver.current_url,
+        prices=[f"{price:,} VND" for price in prices_after_nav],
+    )
     assert is_sorted(prices_after_nav, ascending=True), f"Prices are not sorted after navigation: {prices_after_nav}"

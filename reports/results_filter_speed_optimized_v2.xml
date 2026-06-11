@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="191.483" timestamp="2026-06-11T09:39:04.769236+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="24.995" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="27.262"><failure message="AssertionError: Danh sách sau khi bỏ lọc vẫn chỉ chứa thương hiệu đã lọc&#10;assert False&#10; +  where False = any(&lt;generator object test_unfilter_restores_list.&lt;locals&gt;.&lt;genexpr&gt; at 0x000001C0E6E3A2F0&gt;)">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="5068345d30a8318b2ab101adf1804af1")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_unfilter_restores_list(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 12)
+    
+        click_checkbox_by_text(driver, brand, desired_state=True)
+        wait.until(lambda d: "brands=apple" in d.current_url.lower())
+    
+        click_checkbox_by_text(driver, brand, desired_state=False)
+    
+        wait.until(lambda d: "brands=apple" not in d.current_url.lower())
+    
+        restored = extract_product_names(driver, test_config, limit=20)
+        print("\n--- [FILTER ADVANCED TEST: RESTORED LIST AFTER UNFILTER] ---")
+        for i, name in enumerate(restored[:5], 1):
+            print(f"{i}. {_safe_str(name)}")
+    
+        assert restored, "Danh sách sản phẩm sau khi bỏ lọc rỗng"
+        brand_mapping = test_config.get("test_data", {}).get("brand_match_keywords", {})
+        match_keywords = [k.lower() for k in brand_mapping.get(brand, [brand.lower()])]
+&gt;       assert any(not any(k in name.lower() for k in match_keywords) for name in restored), "Danh sách sau khi bỏ lọc vẫn chỉ chứa thương hiệu đã lọc"
+E       AssertionError: Danh sách sau khi bỏ lọc vẫn chỉ chứa thương hiệu đã lọc
+E       assert False
+E        +  where False = any(&lt;generator object test_unfilter_restores_list.&lt;locals&gt;.&lt;genexpr&gt; at 0x000001C0E6E3A2F0&gt;)
+
+tests\filter\test_filter_advanced.py:91: AssertionError</failure></testcase><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="22.033" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="54.531" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="31.706" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="29.989" /></testsuite></testsuites>

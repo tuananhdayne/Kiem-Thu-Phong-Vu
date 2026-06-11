@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="27.297" timestamp="2026-06-11T10:38:10.427193+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="26.851" /></testsuite></testsuites>

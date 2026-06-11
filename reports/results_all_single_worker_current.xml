@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="41" time="885.224" timestamp="2026-06-10T21:38:05.362606+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="25.531" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="29.049" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="40.264"><failure message="selenium.common.exceptions.TimeoutException: Message:">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="d4e97491c920b6b4a5a30c320fa48456")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_filter_combination_no_results(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+        nonsense = test_config["test_data"].get("nonexistent_search", "noresults_xyz_98765")
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 25)
+    
+        click_checkbox_by_text(driver, brand)
+&gt;       wait.until(lambda d: "brands=apple" in d.current_url.lower())
+
+tests\filter\test_filter_advanced.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;selenium.webdriver.support.wait.WebDriverWait (session="d4e97491c920b6b4a5a30c320fa48456")&gt;
+method = &lt;function test_filter_combination_no_results.&lt;locals&gt;.&lt;lambda&gt; at 0x00000259A32DEFB0&gt;
+message = ''
+
+    def until(self, method: Callable[[D], Literal[False] | T], message: str = "") -&gt; T:
+        """Wait until the method returns a value that is not False.
+    
+        Calls the method provided with the driver as an argument until the
+        return value does not evaluate to ``False``.
+    
+        Args:
+            method: A callable object that takes a WebDriver instance as an
+                argument.
+            message: Optional message for TimeoutException.
+    
+        Returns:
+            The result of the last call to `method`.
+    
+        Raises:
+            TimeoutException: If 'method' does not return a truthy value within
+                the WebDriverWait object's timeout.
+    
+        Example:
+            &gt;&gt;&gt; from selenium.webdriver.common.by import By
+            &gt;&gt;&gt; from selenium.webdriver.support.ui import WebDriverWait
+            &gt;&gt;&gt; from selenium.webdriver.support import expected_conditions as EC
+            &gt;&gt;&gt;
+            &gt;&gt;&gt; # Wait until an element is visible on the page
+            &gt;&gt;&gt; wait = WebDriverWait(driver, 10)
+            &gt;&gt;&gt; element = wait.until(EC.visibility_of_element_located((By.ID, "exampleId")))
+            &gt;&gt;&gt; print(element.text)
+        """
+        screen = None
+        stacktrace = None
+    
+        end_time = time.monotonic() + self._timeout
+        while True:
+            try:
+                value = method(self._driver)
+                if value:
+                    return value
+            except self._ignored_exceptions as exc:
+                screen = getattr(exc, "screen", None)
+                stacktrace = getattr(exc, "stacktrace", None)
+            if time.monotonic() &gt; end_time:
+                break
+            time.sleep(self._poll)
+&gt;       raise TimeoutException(message, screen, stacktrace)
+E       selenium.common.exceptions.TimeoutException: Message:
+
+.venv\Lib\site-packages\selenium\webdriver\support\wait.py:121: TimeoutException</failure></testcase><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="62.746" /><testcase classname="tests.search.test_search_functional" name="test_search_load_more_preserves_keyword" time="12.210" /><testcase classname="tests.search.test_search_functional" name="test_search_deeplink_query_loads_correct_results" time="16.192" /><testcase classname="tests.search.test_search_functional" name="test_search_autocomplete_suggestion_click_navigates_to_results" time="18.329" /><testcase classname="tests.search.test_search_functional" name="test_search_enter_vs_click_icon_same_result" time="11.708" /><testcase classname="tests.search.test_search_regression" name="test_search_vietnamese_accent_and_no_accent" time="16.848" /><testcase classname="tests.search.test_search_regression" name="test_search_empty_query" time="8.706" /><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="261.221"><failure message="Failed: FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 7. Lan paste gay treo: 8. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host='localhost', port=49359): Read timed out. (read timeout=30)">timed out
+
+The above exception was the direct cause of the following exception:
+HTTPConnectionPool(host='localhost', port=49359): Read timed out. (read timeout=30)
+
+During handling of the above exception, another exception occurred:
+FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 7. Lan paste gay treo: 8. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host='localhost', port=49359): Read timed out. (read timeout=30)</failure></testcase><testcase classname="tests.search.test_search_regression" name="test_search_results_are_scoped_to_main_results_container" time="14.727" /><testcase classname="tests.search.test_search_regression" name="test_search_change_keyword_updates_results" time="16.220" /><testcase classname="tests.search.test_search_regression" name="test_search_then_sort_price_keeps_relevant_sorted_results" time="13.747" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&lt;script&gt;alert(1)&lt;/script&gt;]" time="11.911" /><testcase classname="tests.search.test_search_security" name="test_search_xss_payload_is_sanitized[&quot;&lt;img src=x onerror=alert(1)&gt;]" time="10.853" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' OR '1'='1]" time="7.136" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[&quot; OR &quot;1&quot;=&quot;1]" time="10.632" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT NULL --]" time="7.617" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[' UNION SELECT username,password FROM users --]" time="11.618" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[') UNION SELECT NULL,NULL --]" time="11.093" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely['; DROP TABLE products; --]" time="8.667" /><testcase classname="tests.search.test_search_security" name="test_search_sql_payload_is_handled_safely[admin' --]" time="8.695" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[logitech]" time="10.749" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech]" time="11.228" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[  Logitech  ]" time="11.092" /><testcase classname="tests.search.test_search_variants" name="test_search_variants_returns_relevant_results[Logitech!@#]" time="11.423" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="10.870" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit ech]" time="10.443" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitechk]" time="11.379" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logtech]" time="11.515" /><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logit3ch]" time="11.498" /><testcase classname="tests.search.test_search_variants" name="test_search_not_found_shows_no_results" time="7.921" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_price_orders" time="17.880" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_changes_order_for_non_price_options" time="26.632" /><testcase classname="tests.sort.test_sort_verification" name="test_sort_switching_between_sort_types_keeps_results_visible" time="13.019" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="28.075" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="26.270" /><testcase classname="tests.test_negative_cases" name="test_missing_selector_raises" time="6.322" /><testcase classname="tests.test_negative_cases" name="test_slow_page_timeout" time="5.252" /><testcase classname="tests.test_regression_filter_sort_search" name="test_preserve_sort_state_on_reload_and_navigation" time="17.351" /></testsuite></testsuites>

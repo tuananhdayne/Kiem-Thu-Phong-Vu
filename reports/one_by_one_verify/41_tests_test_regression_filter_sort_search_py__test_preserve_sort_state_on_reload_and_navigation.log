@@ -1,0 +1,23 @@
+2026-06-11 13:37:18 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/test_regression_filter_sort_search.py::test_preserve_sort_state_on_reload_and_navigation 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_preserve_sort_state_on_reload_and_navigation
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_preserve_sort_state_on_reload_and_navigation
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 5 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 5 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 5 prices.
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_preserve_sort_state_on_reload_and_navigation
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\41_tests_test_regression_filter_sort_search_py__test_preserve_sort_state_on_reload_and_navigation.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/41_tests_test_regression_filter_sort_search_py__test_preserve_sort_state_on_reload_and_navigation.html -
+============================= 1 passed in 33.02s ==============================

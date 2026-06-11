@@ -9,6 +9,7 @@ from pages.catalog_page import (
     apply_sort_option,
     extract_latest_prices,
     extract_product_names,
+    log_test_evidence,
     resolve_available_text,
 )
 from utils.parsers import is_sorted
@@ -80,6 +81,7 @@ def test_sort_changes_order_for_non_price_options(driver, test_config):
 
     driver.get(monitor_url)
     current_names = extract_product_names(driver, test_config, limit=8)
+    log_test_evidence("SORT BASELINE ORDER", url=driver.current_url, products=current_names)
     assert len(current_names) >= 3, f"Not enough baseline products before sort: {current_names}"
 
     applied_count = 0
@@ -102,6 +104,13 @@ def test_sort_changes_order_for_non_price_options(driver, test_config):
             time.sleep(1)
 
         after = extract_product_names(driver, test_config, limit=8)
+        log_test_evidence(
+            "SORT NON-PRICE RESULT",
+            option=opt_label,
+            resolved_option=locals().get("candidate", ""),
+            url=driver.current_url,
+            products=after,
+        )
         assert len(after) >= 3, f"Not enough products after applying sort '{opt_label}': {after}"
         if after == current_names:
             unchanged_options.append(opt_label)
@@ -131,12 +140,21 @@ def test_sort_switching_between_sort_types_keeps_results_visible(driver, test_co
     non_price_label = resolve_available_text(driver, non_price_candidates)
     apply_sort_option(driver, non_price_label)
     names_after_non_price = extract_product_names(driver, test_config, limit=8)
+    log_test_evidence("SORT SWITCH NON-PRICE RESULT", option=non_price_label, url=driver.current_url, products=names_after_non_price)
     assert names_after_non_price, "No products after applying non-price sort"
 
     candidate_asc = resolve_available_text(driver, [sort_opts.get("price_asc"), *sort_candidates])
     apply_sort_option(driver, candidate_asc)
     WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3))
     prices_asc = extract_latest_prices(driver, test_config, limit=10)
+    names_asc = extract_product_names(driver, test_config, limit=10)
+    log_test_evidence(
+        "SORT SWITCH ASC RESULT",
+        option=candidate_asc,
+        url=driver.current_url,
+        products=names_asc,
+        prices=[f"{price:,} VND" for price in prices_asc],
+    )
     assert len(prices_asc) >= 3, f"Not enough prices after switching to ascending sort: {prices_asc}"
     assert is_sorted(prices_asc, ascending=True), f"Prices are not ascending after switching to ascending sort: {prices_asc}"
 
@@ -147,5 +165,13 @@ def test_sort_switching_between_sort_types_keeps_results_visible(driver, test_co
     apply_sort_option(driver, candidate_desc)
     WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3) != prices_asc[:3])
     prices_desc = extract_latest_prices(driver, test_config, limit=10)
+    names_desc = extract_product_names(driver, test_config, limit=10)
+    log_test_evidence(
+        "SORT SWITCH DESC RESULT",
+        option=candidate_desc,
+        url=driver.current_url,
+        products=names_desc,
+        prices=[f"{price:,} VND" for price in prices_desc],
+    )
     assert len(prices_desc) >= 3, f"Not enough prices after switching to descending sort: {prices_desc}"
     assert is_sorted(prices_desc, ascending=False), f"Prices are not descending after switching to descending sort: {prices_desc}"

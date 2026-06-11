@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="8.949" timestamp="2026-06-11T13:32:27.375328+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_variants" name="test_search_typo_tolerance_returns_relevant_results[Logitec]" time="8.921" /></testsuite></testsuites>

@@ -26,7 +26,8 @@ RUN_HISTORY = REPORTS_DIR / "run_history.json"
 SCREENSHOT_DIR = REPORTS_DIR / "screenshots"
 
 MARKER_ORDER = ["smoke", "regression", "slow", "security", "destructive", "framework", "parametrize", "test"]
-SAFE_MARKER_EXPR = "not destructive and not security"
+SAFE_MARKER_EXPR = "not destructive and not security and not framework"
+BUSINESS_MARKER_EXPR = "not framework"
 
 
 def _ordered_markers(markers: list[str]) -> list[str]:
@@ -237,6 +238,54 @@ def _append_history(entry: dict) -> None:
 
 
 # Múi giờ Việt Nam UTC+7
+def _sorted_pngs(path: Path) -> list[Path]:
+    if not path.exists():
+        return []
+    return sorted(path.glob("*.png"), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def _failed_pngs(path: Path) -> list[Path]:
+    return [
+        p for p in _sorted_pngs(path)
+        if "_failed_" in p.name or p.name.endswith("_failed.png")
+    ]
+
+
+def _artifact_screenshot_dirs() -> list[Path]:
+    artifacts_root = REPORTS_DIR / "artifacts"
+    dirs: list[Path] = []
+    if artifacts_root.exists():
+        for run_dir in artifacts_root.iterdir():
+            screenshot_dir = run_dir / "screenshots"
+            if run_dir.is_dir() and screenshot_dir.exists():
+                dirs.append(screenshot_dir)
+    dirs.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return dirs
+
+
+def _latest_screenshot_dir(prefer_failed: bool = False) -> Path:
+    artifacts_root = REPORTS_DIR / "artifacts"
+    screenshots_path = SCREENSHOT_DIR
+
+    run_history = _load_history()
+    latest_run_id = run_history[0].get("run_id") if run_history else None
+    if latest_run_id and latest_run_id != "-":
+        candidate = artifacts_root / latest_run_id / "screenshots"
+        if candidate.exists():
+            if not prefer_failed or _failed_pngs(candidate):
+                return candidate
+            screenshots_path = candidate
+
+    for candidate in _artifact_screenshot_dirs():
+        if prefer_failed:
+            if _failed_pngs(candidate):
+                return candidate
+        elif _sorted_pngs(candidate):
+            return candidate
+
+    return screenshots_path
+
+
 VN_TZ = _tz(timedelta(hours=7))
 
 
@@ -442,6 +491,27 @@ def _metadata_for_nodeid(nodeid: str, metadata: dict[str, dict]) -> dict:
     return {}
 
 
+def _is_framework_nodeid(nodeid: str, metadata: dict[str, dict]) -> bool:
+    return "framework" in _metadata_for_nodeid(nodeid, metadata).get("markers", [])
+
+
+def _business_nodeids(nodeids: list[str], metadata: dict[str, dict]) -> list[str]:
+    return [nodeid for nodeid in nodeids if not _is_framework_nodeid(nodeid, metadata)]
+
+
+def _business_metadata_items(metadata: dict[str, dict]) -> list[tuple[str, dict]]:
+    return [
+        (test_id, meta)
+        for test_id, meta in metadata.items()
+        if "framework" not in meta.get("markers", [])
+    ]
+
+
+def _is_framework_result_case(test_case: dict, metadata: dict[str, dict]) -> bool:
+    nodeid = f"tests/{test_case.get('classname', '')}.py::{test_case.get('name', '')}"
+    return _is_framework_nodeid(nodeid, metadata)
+
+
 def read_checklist_summary() -> dict[str, int]:
     summary = {"PASS": 0, "TODO": 0, "TONG": 0}
     try:
@@ -592,27 +662,29 @@ def build_command(mode: str, custom_target: str | list[str], workers: int = 1, r
         if custom_target:
             command.extend(_target_args(custom_target))
             if "security" not in custom_target_text:
-                command.extend(["-m", "security and not destructive"])
+                command.extend(["-m", "security and not destructive and not framework"])
         else:
-            command.extend(["tests", "-m", "security and not destructive"])
+            command.extend(["tests", "-m", "security and not destructive and not framework"])
         command.extend(["--run-security"])
     elif mode == "Destructive":
         if custom_target:
             command.extend(_target_args(custom_target))
             if "destructive" not in custom_target_text:
-                command.extend(["-m", "destructive and not security"])
+                command.extend(["-m", "destructive and not security and not framework"])
         else:
-            command.extend(["tests", "-m", "destructive and not security"])
+            command.extend(["tests", "-m", "destructive and not security and not framework"])
         command.extend(["--run-destructive"])
     elif mode == "All including destructive/security":
         if custom_target:
             command.extend(_target_args(custom_target))
         else:
             command.extend(["tests"])
+        command.extend(["-m", BUSINESS_MARKER_EXPR])
         command.extend(["--run-destructive", "--run-security"])
     elif mode == "Tùy chỉnh":
         targets = _target_args(custom_target)
         command.extend(targets or ["tests"])
+        command.extend(["-m", BUSINESS_MARKER_EXPR])
     else:
         command.extend(["tests"])
 
@@ -993,9 +1065,11 @@ def main() -> None:
 
     checklist = read_checklist_summary()
     discovered_metadata = discover_tests_metadata()
-    discovered_tests = list(discovered_metadata.keys())
+    business_metadata = dict(_business_metadata_items(discovered_metadata))
+    discovered_tests = list(business_metadata.keys())
     collected_tests = collect_pytest_nodeids()
-    source_test_count = len(collected_tests) if collected_tests else len(discovered_tests)
+    business_collected_tests = _business_nodeids(collected_tests, discovered_metadata)
+    source_test_count = len(business_collected_tests) if business_collected_tests else len(discovered_tests)
 
     st.markdown(
         """
@@ -1109,7 +1183,7 @@ def main() -> None:
         
         if actual_mode == "Tùy chỉnh":
             with st.expander("🎯 Chọn Test Case cụ thể", expanded=True):
-                selectable_tests = collected_tests or discovered_tests
+                selectable_tests = business_collected_tests or discovered_tests
                 if selectable_tests:
                     selected_tests = st.multiselect(
                         "Click chọn một hoặc nhiều test để chạy:",
@@ -1123,7 +1197,18 @@ def main() -> None:
                 custom_target = st.text_input("Hoặc nhập target Pytest thủ công (ví dụ: tests/test_cases.py):")
 
         with st.expander("🛠 Cấu hình nâng cao (Hiệu năng & Trình duyệt)", expanded=False):
-            headless = st.checkbox("Chạy ẩn danh (Headless - Nhanh nhất)", value=True, help="Tắt giao diện trình duyệt trực quan để tối đa tốc độ.")
+            browser_mode = st.radio(
+                "Chế độ trình duyệt",
+                [
+                    "Headless - chạy ẩn, nhanh nhất",
+                    "Headful - hiện Chrome để quan sát",
+                ],
+                index=0,
+                help="Chọn Headful nếu muốn thấy Chrome mở lên và trang web chạy như khi gõ pytest bằng dòng lệnh.",
+            )
+            headless = browser_mode.startswith("Headless")
+            if not headless:
+                st.info("Chế độ Headful sẽ hiện Chrome trên màn hình và tự ép Workers = 1 để dễ quan sát, tránh mở nhiều tab/cửa sổ.")
             col_opts1, col_opts2 = st.columns(2)
             workers = col_opts1.number_input("Số luồng song song (Workers)", min_value=1, max_value=8, value=4, help="Khuyên dùng 4 luồng. Quá nhiều luồng có thể gây nghẽn tài nguyên CPU/RAM hoặc rate-limit!")
             timeout = col_opts2.number_input("Timeout chờ (s)", min_value=3, max_value=120, value=10, help="Thời gian chờ tìm phần tử DOM. KHÔNG nên đặt dưới 5s!")
@@ -1134,9 +1219,13 @@ def main() -> None:
             if workers > 5:
                 st.warning("⚠️ **Nhiều luồng quá!** Nhiều luồng chạy cùng lúc có thể khiến server Phong Vũ hạn chế IP hoặc nghẽn tài nguyên. Khuyên dùng tối đa 4 luồng.")
 
-            # Điều khiển tải ảnh để giúp debug giao diện: mặc định không tải ảnh (nhanh),
-            # nhưng người dùng có thể bật nếu muốn thấy trang đầy đủ.
-            load_images = st.checkbox("Tải ảnh (hiển thị hình ảnh trên trang)", value=False, help="Bật để trình duyệt tải ảnh; tắt để tăng tốc.")
+            # Điều khiển tải ảnh để giúp debug giao diện: Headless ưu tiên tốc độ, Headful ưu tiên quan sát thật.
+            load_images = st.checkbox(
+                "Tải ảnh (hiển thị hình ảnh trên trang)",
+                value=not headless,
+                key=f"load_images_{'headless' if headless else 'headful'}",
+                help="Bật để trình duyệt tải ảnh; tắt để tăng tốc.",
+            )
             save_on_pass = st.checkbox("Lưu screenshot khi PASS (traceability)", value=False, help="Lưu screenshot và page source khi test PASS để chứng minh hành vi.")
 
         st.write("")
@@ -1178,30 +1267,8 @@ def main() -> None:
         # Tab: show only FAILED screenshots from latest run
         with tab_screens:
             try:
-                artifacts_root = REPORTS_DIR / "artifacts"
-                screenshots_path = REPORTS_DIR / "screenshots"
-
-                run_history = _load_history()
-                latest_run_id = run_history[0].get("run_id") if run_history else None
-                if latest_run_id:
-                    candidate = artifacts_root / latest_run_id / "screenshots"
-                    if candidate.exists():
-                        screenshots_path = candidate
-                else:
-                    if artifacts_root.exists():
-                        runs = [p for p in artifacts_root.iterdir() if p.is_dir()]
-                        if runs:
-                            runs = sorted(runs, key=lambda p: p.stat().st_mtime, reverse=True)
-                            candidate = runs[0] / "screenshots"
-                            if candidate.exists():
-                                screenshots_path = candidate
-
-                imgs = []
-                if screenshots_path.exists():
-                    imgs = sorted(screenshots_path.glob('*.png'), key=lambda p: p.stat().st_mtime, reverse=True)
-
-                # Filter only failed images
-                failed_imgs = [p for p in imgs if ("_failed_" in p.name or p.name.endswith("_failed.png"))]
+                screenshots_path = _latest_screenshot_dir(prefer_failed=True)
+                failed_imgs = _failed_pngs(screenshots_path)
 
                 if failed_imgs:
                     st.markdown(f"**Hiển thị ảnh FAILED từ:** {str(screenshots_path.relative_to(PROJECT_ROOT))}")
@@ -1234,21 +1301,12 @@ def main() -> None:
         # Tab: show ALL artifacts (passed + failed) for latest run
         with tab_artifacts:
             try:
-                artifacts_root = REPORTS_DIR / "artifacts"
-                run_history = _load_history()
-                latest_run_id = run_history[0].get("run_id") if run_history else None
-                if latest_run_id:
-                    screenshots_path = artifacts_root / latest_run_id / "screenshots"
-                    pages_dir = artifacts_root / latest_run_id / "pages"
-                    console_dir = artifacts_root / latest_run_id / "console"
-                else:
-                    screenshots_path = REPORTS_DIR / "screenshots"
-                    pages_dir = REPORTS_DIR / "pages"
-                    console_dir = REPORTS_DIR / "console"
+                screenshots_path = _latest_screenshot_dir(prefer_failed=False)
+                run_dir = screenshots_path.parent
+                pages_dir = run_dir / "pages"
+                console_dir = run_dir / "console"
 
-                imgs = []
-                if screenshots_path.exists():
-                    imgs = sorted(screenshots_path.glob('*.png'), key=lambda p: p.stat().st_mtime, reverse=True)
+                imgs = _sorted_pngs(screenshots_path)
 
                 if imgs:
                     st.markdown(f"**Hiển thị tất cả ảnh artifacts từ:** {str(screenshots_path.relative_to(PROJECT_ROOT))}")
@@ -1277,17 +1335,17 @@ def main() -> None:
                 st.info('Không thể đọc artifacts')
 
         with tab_discovered:
-            if discovered_metadata:
+            if business_metadata:
                 st.markdown(f"Phát hiện **{source_test_count}** test cases từ mã nguồn:")
-                if collected_tests and len(discovered_metadata) != source_test_count:
+                if business_collected_tests and len(business_metadata) != source_test_count:
                     st.caption(
                         f"Đếm theo pytest collect thực tế: {source_test_count}. "
-                        f"Metadata mô tả từ AST: {len(discovered_metadata)} mục."
+                        f"Metadata mô tả từ AST: {len(business_metadata)} mục."
                     )
                 st.markdown("#### Kiểm thử chức năng website: Search / Filter / Sort")
                 for test_id, meta in [
                     (k, v)
-                    for k, v in discovered_metadata.items()
+                    for k, v in business_metadata.items()
                     if "framework" not in v.get("markers", [])
                     and "security" not in v.get("markers", [])
                     and "destructive" not in v.get("markers", [])
@@ -1327,25 +1385,15 @@ def main() -> None:
                         </div>
                     """, unsafe_allow_html=True)
 
-                framework_items = [
-                    meta
-                    for meta in discovered_metadata.values()
-                    if "framework" in meta.get("markers", [])
-                ]
                 risky_items = [
                     meta
-                    for meta in discovered_metadata.values()
+                    for meta in business_metadata.values()
                     if "security" in meta.get("markers", []) or "destructive" in meta.get("markers", [])
                 ]
                 if risky_items:
                     st.markdown("#### Security/destructive payload tests")
                     st.caption("Cac test nay khong chay mac dinh tren website ben thu ba; chi chay khi co phep hoac tren moi truong demo/mock.")
                     for meta in risky_items:
-                        _render_test_discovery_card(meta)
-                if framework_items:
-                    st.markdown("#### Kiểm thử framework/internal")
-                    st.caption("Các test này kiểm tra helper Selenium hoặc cơ chế wait, không nên đưa nổi bật vào phần kiểm thử chức năng nghiệp vụ website.")
-                    for meta in framework_items:
                         _render_test_discovery_card(meta)
             else:
                 st.warning("Chưa phát hiện test nào trong thư mục tests/.")
@@ -1420,14 +1468,14 @@ def main() -> None:
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "4"
             os.environ["DESTRUCTIVE_SCRIPT_TIMEOUT"] = "2"
             os.environ["DESTRUCTIVE_MAX_RESPONSE_SECONDS"] = "8"
-            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "0"
-            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "0"
+            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "1"
+            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "1"
         elif actual_mode == "All including destructive/security":
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "30"
             os.environ["DESTRUCTIVE_SCRIPT_TIMEOUT"] = "2"
             os.environ["DESTRUCTIVE_MAX_RESPONSE_SECONDS"] = "8"
-            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "0"
-            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "0"
+            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "1"
+            os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "1"
         else:
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "30"
             os.environ.pop("DESTRUCTIVE_SCRIPT_TIMEOUT", None)
@@ -1495,6 +1543,10 @@ def main() -> None:
             xml_report = REPORTS_DIR / "results.xml"
             if xml_report.exists():
                 test_cases = parse_junit_xml(xml_report)
+                test_cases = [
+                    tc for tc in test_cases
+                    if not _is_framework_result_case(tc, discovered_metadata)
+                ]
                 if test_cases:
                     col_f1, col_f2 = st.columns([2, 1])
                     search_query = col_f1.text_input("🔍 Tìm kiếm Test Case (Tên hoặc File):", "")

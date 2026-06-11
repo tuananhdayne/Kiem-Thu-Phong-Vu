@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="8.226" timestamp="2026-06-09T16:42:51.112347+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="7.838"><failure message="Failed: FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 1. Lan paste gay treo: 2. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: Message: element click intercepted: Element &lt;div id=&quot;__pv_click_...&quot; style=&quot;position: fixed; left: 8px; top: 8px; z-index: 2147483647; width: 24px; height: 24px; opacity: 0.01;&quot;&gt;probe&lt;/div&gt; is not clickable at point (20, 20). Other element would receive the click: &lt;div id=&quot;__pv_very_long_proof&quot; style=&quot;position: fixed; left: 12px; top: 12px; z-index: 2147483647; background: rgb(185, 28, 28); color: rgb(255, 255, 255); font: 700 16px Arial, sans-serif; padding: 10px 12px; border: 3px solid rgb(255... [truncated]">Message: element click intercepted: Element &lt;div id="__pv_click_..." style="position: fixed; left: 8px; top: 8px; z-index: 2147483647; width: 24px; height: 24px; opacity: 0.01;"&gt;probe&lt;/div&gt; is not clickable at point (20, 20). Other element would receive the click: &lt;div id="__pv_very_long_proof" style="position: fixed; left: 12px; top: 12px; z-index: 2147483647; background: rgb(185, 28, 28); color: rgb(255, 255, 255); font: 700 16px Arial, sans-serif; padding: 10px 12px; border: 3px solid rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.35) 0px 2px 12px;"&gt;...&lt;/div&gt;
+  (Session info: chrome=149.0.7827.102); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementclickinterceptedexception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff740c63435+14875]
+	chromedriver!GetHandleVerifier [0x7ff740c63490+148d0]
+	chromedriver!(No symbol) [0x7ff7407b778d]
+	chromedriver!(No symbol) [0x7ff740819605]
+	chromedriver!(No symbol) [0x7ff74081721a]
+	chromedriver!(No symbol) [0x7ff740814567]
+	chromedriver!(No symbol) [0x7ff740813410]
+	chromedriver!(No symbol) [0x7ff740805e28]
+	chromedriver!(No symbol) [0x7ff74083a27a]
+	chromedriver!(No symbol) [0x7ff7408056a6]
+	chromedriver!(No symbol) [0x7ff74085e9fc]
+	chromedriver!(No symbol) [0x7ff740803eb0]
+	chromedriver!(No symbol) [0x7ff740804e23]
+	chromedriver!GetHandleVerifier [0x7ff741246c91+5f80d1]
+	chromedriver!GetHandleVerifier [0x7ff74124101b+5f245b]
+	chromedriver!GetHandleVerifier [0x7ff741266305+617745]
+	chromedriver!GetHandleVerifier [0x7ff740c803ee+3182e]
+	chromedriver!GetHandleVerifier [0x7ff740c88b0c+39f4c]
+	chromedriver!GetHandleVerifier [0x7ff740c6cb04+1df44]
+	chromedriver!GetHandleVerifier [0x7ff740c6cc94+1e0d4]
+	chromedriver!GetHandleVerifier [0x7ff740c50997+1dd7]
+	KERNEL32!BaseThreadInitThunk [0x7ff8a83fe957+17]
+	ntdll!RtlUserThreadStart [0x7ff8a890427c+2c]
+
+
+During handling of the above exception, another exception occurred:
+FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 1. Lan paste gay treo: 2. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: Message: element click intercepted: Element &lt;div id="__pv_click_..." style="position: fixed; left: 8px; top: 8px; z-index: 2147483647; width: 24px; height: 24px; opacity: 0.01;"&gt;probe&lt;/div&gt; is not clickable at point (20, 20). Other element would receive the click: &lt;div id="__pv_very_long_proof" style="position: fixed; left: 12px; top: 12px; z-index: 2147483647; background: rgb(185, 28, 28); color: rgb(255, 255, 255); font: 700 16px Arial, sans-serif; padding: 10px 12px; border: 3px solid rgb(255... [truncated]</failure></testcase></testsuite></testsuites>

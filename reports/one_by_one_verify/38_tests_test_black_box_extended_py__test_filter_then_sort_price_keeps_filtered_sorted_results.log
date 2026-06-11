@@ -1,0 +1,29 @@
+2026-06-11 13:36:02 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/test_black_box_extended.py::test_filter_then_sort_price_keeps_filtered_sorted_results 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_filter_then_sort_price_keeps_filtered_sorted_results
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_filter_then_sort_price_keeps_filtered_sorted_results
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 10 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:499 Clicking filter checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:589 Clicked checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:364 Waiting for product list to update for filter: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 10 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:377 Product list updated after 1.62 seconds.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 5 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 10 product names via fast DOM path.
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_filter_then_sort_price_keeps_filtered_sorted_results
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\38_tests_test_black_box_extended_py__test_filter_then_sort_price_keeps_filtered_sorted_results.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/38_tests_test_black_box_extended_py__test_filter_then_sort_price_keeps_filtered_sorted_results.html -
+============================= 1 passed in 57.54s ==============================

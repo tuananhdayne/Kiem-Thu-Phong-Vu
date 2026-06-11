@@ -1,0 +1,31 @@
+2026-06-11 13:34:19 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/sort/test_sort_verification.py::test_sort_price_orders 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_price_orders
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_price_orders
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 3 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 10 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 10 product names via fast DOM path.
+INFO     phongvu-tests-selenium:test_sort_verification.py:56 DEBUG: prices_asc=[1290000, 1550000, 1690000, 1690000, 1790000, 1790000, 1890000, 1899000, 1990000, 1990000]
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 3 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 10 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 10 product names via fast DOM path.
+INFO     phongvu-tests-selenium:test_sort_verification.py:72 DEBUG: prices_desc=[30990000, 28900000, 28490000, 28090000, 27990000, 26990000, 26590000, 22490000, 16590000, 16490000]
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_price_orders
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\34_tests_sort_test_sort_verification_py__test_sort_price_orders.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/34_tests_sort_test_sort_verification_py__test_sort_price_orders.html -
+============================= 1 passed in 19.70s ==============================

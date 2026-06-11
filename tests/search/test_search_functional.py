@@ -11,6 +11,7 @@ from pages.catalog_page import (
     extract_product_names,
     find_elements_within_results,
     find_search_input,
+    log_test_evidence,
     NO_RESULTS_TEXT,
 )
 from pages.base_page import first_visible
@@ -212,6 +213,8 @@ def test_search_deeplink_query_loads_correct_results(driver, test_config):
     if not loaded:
         pytest.skip("No known deeplink pattern matched on this site; skip deeplink test")
 
+    _log_product_names("SEARCH DEEPLINK RESULT", names)
+    log_test_evidence("SEARCH DEEPLINK", keyword=keyword, url=driver.current_url, products=names)
     assert names is not None, "Deep-link did not produce a valid results state"
 
 # hàm này test khi gõ từ Logi vào ô search, nếu có gợi ý hiện ra thì click vào gợi ý đó và kiểm tra xem có điều hướng đúng và hiển thị kết quả liên quan hay không. Nếu site không có gợi ý autocomplete thì test sẽ skip.
@@ -292,8 +295,22 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
             try:
                 elements = driver.find_elements(By.CSS_SELECTOR, sel)
                 visible = [e for e in elements if e.is_displayed()]
-                if visible:
-                    suggestion = visible[0]
+            if visible:
+                visible_texts = []
+                for item in visible[:8]:
+                    try:
+                        text = item.text.strip()
+                        if text:
+                            visible_texts.append(text)
+                    except Exception:
+                        pass
+                log_test_evidence(
+                    "AUTOCOMPLETE SUGGESTIONS",
+                    partial=partial,
+                    selector=sel,
+                    suggestions=visible_texts,
+                )
+                suggestion = visible[0]
                     try:
                         LOGGER.info("DEBUG: selector matched: %s", sel)
                         LOGGER.info("DEBUG: suggestion outerHTML: %s", suggestion.get_attribute('outerHTML')[:1000])
@@ -331,6 +348,12 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
             candidate = driver.execute_script(script, partial.lower(), search_input)
             if candidate:
                 suggestion = candidate
+                log_test_evidence(
+                    "AUTOCOMPLETE SUGGESTIONS",
+                    partial=partial,
+                    selector="fallback DOM text scan",
+                    suggestions=[candidate.text.strip()],
+                )
                 try:
                     LOGGER.info("DEBUG: fallback DOM selector matched suggestion")
                 except Exception:
@@ -343,6 +366,7 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
 
     try:
         suggestion_text = suggestion.text.strip()
+        log_test_evidence("AUTOCOMPLETE SELECTED", partial=partial, suggestion=suggestion_text)
         suggestion.click()
     except Exception:
         try:
@@ -385,6 +409,13 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
     except Exception:
         LOGGER.info("DEBUG: suggestion_text=<unknown>")
     LOGGER.info("DEBUG: products after suggestion: %s", names)
+    log_test_evidence(
+        "AUTOCOMPLETE RESULT",
+        partial=partial,
+        suggestion=locals().get("suggestion_text", "<unknown>"),
+        url=driver.current_url,
+        products=names,
+    )
     try:
         from pages.catalog_page import extract_latest_prices
 
@@ -418,6 +449,7 @@ def test_search_enter_vs_click_icon_same_result(driver, test_config):
         time.sleep(0.3)
 
     LOGGER.info("DEBUG: names_enter=%s", names_enter)
+    log_test_evidence("SEARCH ENTER RESULT", keyword=keyword, url=driver.current_url, products=names_enter)
     assert names_enter, "No results after Enter submission"
 
     # Now try click icon/button
@@ -453,6 +485,7 @@ def test_search_enter_vs_click_icon_same_result(driver, test_config):
         time.sleep(0.3)
 
     LOGGER.info("DEBUG: names_click=%s", names_click)
+    log_test_evidence("SEARCH ICON CLICK RESULT", keyword=keyword, url=driver.current_url, products=names_click)
     assert names_click, "No results after clicking search icon/button"
 
     # Loose equality: ensure top results overlap meaningfully

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="44.137" timestamp="2026-06-11T09:36:03.090986+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="43.185"><failure message="AssertionError: Các sản phẩm không phù hợp filter 'Apple': ['Laptop Lenovo IdeaPad Slim 3 14IRH10 - 83K0004JVN (i5-13420H/ 16GB/ 512GB/ Win 11 Home SL, English)', 'Laptop HP 15-fc0024AU - D0BH2PA (Ryzen 5 7520U/ 16GB/ 512GB/ Windows 11 Home)', 'Laptop Acer Aspire 7 A715-59G-55MD (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)', 'Laptop Asus Vivobook S14 S3407CA-LY068WS (Ultra 5-225H/ 16GB/ 512GB/ Win 11 Home + Office + Microsoft)', 'Laptop Msi Katana B14WEK-286VN (i5-14450HX/ GeForce RTX™ 5050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop Dell 14 DC14250 DC4C5386W (Core 5 120U/ 16GB/ 512GB/ Win 11 Home SL + Office)', 'Laptop HP 240R G9 - AX3C6AT (i3-1315U/ 8GB/ 512GB/ Windows 11 Home SL)', 'Laptop Acer Aspire Go 14 AG14-72P-563L (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home SL)', 'Laptop Asus TUF Gaming A15 FA506NCG-HN184W (Ryzen 7 7445HS/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop HP Victus 15 fa2731TX (B85LNPA) (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)']&#10;assert not ['Laptop Lenovo IdeaPad Slim 3 14IRH10 - 83K0004JVN (i5-13420H/ 16GB/ 512GB/ Win 11 Home SL, English)', 'Laptop HP 15-fc0024AU - D0BH2PA (Ryzen 5 7520U/ 16GB/ 512GB/ Windows 11 Home)', 'Laptop Acer Aspire 7 A715-59G-55MD (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)', 'Laptop Asus Vivobook S14 S3407CA-LY068WS (Ultra 5-225H/ 16GB/ 512GB/ Win 11 Home + Office + Microsoft)', 'Laptop Msi Katana B14WEK-286VN (i5-14450HX/ GeForce RTX™ 5050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop Dell 14 DC14250 DC4C5386W (Core 5 120U/ 16GB/ 512GB/ Win 11 Home SL + Office)', ...]">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="19c05ebdb4945a6e7c05f79b00fcb289")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_filter_all_products_match_brand(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 12)
+    
+        old_names = extract_product_names(driver, test_config, limit=20)
+        print("\n--- [FILTER ADVANCED TEST: BEFORE BRAND FILTER] ---")
+        for i, name in enumerate(old_names[:5], 1):
+            print(f"{i}. {_safe_str(name)}")
+    
+        click_checkbox_by_text(driver, brand, desired_state=True)
+        wait.until(lambda d: "brands=apple" in d.current_url.lower())
+    
+        new_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=15)
+        print("\n--- [FILTER ADVANCED TEST: AFTER BRAND FILTER] ---")
+        for i, name in enumerate(new_names[:5], 1):
+            print(f"{i}. {_safe_str(name)}")
+    
+        assert new_names != old_names, "Danh sách sản phẩm không thay đổi sau khi áp dụng filter"
+    
+        brand_mapping = test_config.get("test_data", {}).get("brand_match_keywords", {})
+        match_keywords = [k.lower() for k in brand_mapping.get(brand, [brand.lower()])]
+        mismatches = [n for n in new_names if not any(k in n.lower() for k in match_keywords)]
+&gt;       assert not mismatches, f"Các sản phẩm không phù hợp filter '{brand}': {mismatches}"
+E       AssertionError: Các sản phẩm không phù hợp filter 'Apple': ['Laptop Lenovo IdeaPad Slim 3 14IRH10 - 83K0004JVN (i5-13420H/ 16GB/ 512GB/ Win 11 Home SL, English)', 'Laptop HP 15-fc0024AU - D0BH2PA (Ryzen 5 7520U/ 16GB/ 512GB/ Windows 11 Home)', 'Laptop Acer Aspire 7 A715-59G-55MD (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)', 'Laptop Asus Vivobook S14 S3407CA-LY068WS (Ultra 5-225H/ 16GB/ 512GB/ Win 11 Home + Office + Microsoft)', 'Laptop Msi Katana B14WEK-286VN (i5-14450HX/ GeForce RTX™ 5050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop Dell 14 DC14250 DC4C5386W (Core 5 120U/ 16GB/ 512GB/ Win 11 Home SL + Office)', 'Laptop HP 240R G9 - AX3C6AT (i3-1315U/ 8GB/ 512GB/ Windows 11 Home SL)', 'Laptop Acer Aspire Go 14 AG14-72P-563L (Core 5 120U/ 16GB/ 512GB/ Windows 11 Home SL)', 'Laptop Asus TUF Gaming A15 FA506NCG-HN184W (Ryzen 7 7445HS/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop HP Victus 15 fa2731TX (B85LNPA) (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)']
+E       assert not ['Laptop Lenovo IdeaPad Slim 3 14IRH10 - 83K0004JVN (i5-13420H/ 16GB/ 512GB/ Win 11 Home SL, English)', 'Laptop HP 15-fc0024AU - D0BH2PA (Ryzen 5 7520U/ 16GB/ 512GB/ Windows 11 Home)', 'Laptop Acer Aspire 7 A715-59G-55MD (i5-13420H/ GeForce RTX™ 3050/ 16GB/ 512GB/ Win 11 Home SL)', 'Laptop Asus Vivobook S14 S3407CA-LY068WS (Ultra 5-225H/ 16GB/ 512GB/ Win 11 Home + Office + Microsoft)', 'Laptop Msi Katana B14WEK-286VN (i5-14450HX/ GeForce RTX™ 5050/ 16GB/ 512GB/ Win 11 Home)', 'Laptop Dell 14 DC14250 DC4C5386W (Core 5 120U/ 16GB/ 512GB/ Win 11 Home SL + Office)', ...]
+
+tests\filter\test_filter_advanced.py:66: AssertionError</failure></testcase></testsuite></testsuites>

@@ -43,17 +43,17 @@ def test_filter_all_products_match_brand(driver, test_config):
     brand = test_config["test_data"]["brand_to_filter"]
 
     driver.get(base_url)
-    wait = WebDriverWait(driver, 25)
+    wait = WebDriverWait(driver, 12)
 
     old_names = extract_product_names(driver, test_config, limit=20)
     print("\n--- [FILTER ADVANCED TEST: BEFORE BRAND FILTER] ---")
     for i, name in enumerate(old_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
 
-    click_checkbox_by_text(driver, brand)
+    click_checkbox_by_text(driver, brand, desired_state=True)
     wait.until(lambda d: "brands=apple" in d.current_url.lower())
 
-    new_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=30)
+    new_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=15)
     print("\n--- [FILTER ADVANCED TEST: AFTER BRAND FILTER] ---")
     for i, name in enumerate(new_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -71,23 +71,30 @@ def test_unfilter_restores_list(driver, test_config):
     brand = test_config["test_data"]["brand_to_filter"]
 
     driver.get(base_url)
-    wait = WebDriverWait(driver, 25)
+    wait = WebDriverWait(driver, 12)
 
-    click_checkbox_by_text(driver, brand)
+    click_checkbox_by_text(driver, brand, desired_state=True)
     wait.until(lambda d: "brands=apple" in d.current_url.lower())
 
-    click_checkbox_by_text(driver, brand)
+    click_checkbox_by_text(driver, brand, desired_state=False)
 
     wait.until(lambda d: "brands=apple" not in d.current_url.lower())
 
-    restored = extract_product_names(driver, test_config, limit=20)
+    brand_mapping = test_config.get("test_data", {}).get("brand_match_keywords", {})
+    match_keywords = [k.lower() for k in brand_mapping.get(brand, [brand.lower()])]
+    restored = []
+    deadline = time.time() + 8
+    while time.time() < deadline:
+        restored = extract_product_names(driver, test_config, limit=20)
+        if restored and any(not any(k in name.lower() for k in match_keywords) for name in restored):
+            break
+        time.sleep(0.3)
+
     print("\n--- [FILTER ADVANCED TEST: RESTORED LIST AFTER UNFILTER] ---")
     for i, name in enumerate(restored[:5], 1):
         print(f"{i}. {_safe_str(name)}")
 
     assert restored, "Danh sách sản phẩm sau khi bỏ lọc rỗng"
-    brand_mapping = test_config.get("test_data", {}).get("brand_match_keywords", {})
-    match_keywords = [k.lower() for k in brand_mapping.get(brand, [brand.lower()])]
     assert any(not any(k in name.lower() for k in match_keywords) for name in restored), "Danh sách sau khi bỏ lọc vẫn chỉ chứa thương hiệu đã lọc"
 
 
@@ -97,13 +104,14 @@ def test_filter_combination_no_results(driver, test_config):
     nonsense = test_config["test_data"].get("nonexistent_search", "noresults_xyz_98765")
 
     driver.get(base_url)
-    wait = WebDriverWait(driver, 25)
+    wait = WebDriverWait(driver, 12)
 
-    click_checkbox_by_text(driver, brand)
+    click_checkbox_by_text(driver, brand, desired_state=True)
     wait.until(lambda d: "brands=apple" in d.current_url.lower())
 
     search_with_keyword(driver, test_config, nonsense)
 
+    wait.until(lambda d: "không tìm thấy sản phẩm nào" in d.find_element(By.TAG_NAME, "body").text.lower())
     body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
     print("\n--- [FILTER ADVANCED TEST: COMBINATION NO RESULTS] ---")
     print(f"Searched: {_safe_str(nonsense)} under brand {_safe_str(brand)}. Text found: 'khong tim thay san pham nao'")
@@ -115,7 +123,7 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
     base_url = test_config["pages"]["laptop"]
 
     driver.get(base_url)
-    wait = WebDriverWait(driver, 25)
+    wait = WebDriverWait(driver, 12)
     wait.until(lambda d: d.find_elements(By.CSS_SELECTOR, "label.check-box input[type='checkbox']"))
 
     old_names = extract_product_names(driver, test_config, limit=10)
@@ -123,9 +131,9 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
     assert len(labels) >= 2, "Không đủ filter để kiểm tra việc bỏ một điều kiện"
 
     first_label, second_label = labels[:2]
-    click_checkbox_by_text(driver, first_label)
-    click_checkbox_by_text(driver, second_label)
-    combined_names = wait_products_updated(driver, test_config, old_names, timeout=12)
+    click_checkbox_by_text(driver, first_label, desired_state=True)
+    click_checkbox_by_text(driver, second_label, desired_state=True)
+    combined_names = wait_products_updated(driver, test_config, old_names, timeout=8)
     print(f"\n--- [FILTER ADVANCED TEST: MULTI-FILTER ({_safe_str(first_label)} + {_safe_str(second_label)})] ---")
     for i, name in enumerate(combined_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -133,9 +141,9 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
     assert combined_names, "Không có sản phẩm sau khi áp dụng 2 filter"
     assert combined_names != old_names, "Danh sách không thay đổi sau khi áp dụng 2 filter"
 
-    click_checkbox_by_text(driver, first_label)
+    click_checkbox_by_text(driver, first_label, desired_state=False)
     updated_names = []
-    deadline = time.time() + 10
+    deadline = time.time() + 6
     while time.time() < deadline:
         updated_names = extract_product_names(driver, test_config, limit=10)
         if updated_names and updated_names != combined_names:

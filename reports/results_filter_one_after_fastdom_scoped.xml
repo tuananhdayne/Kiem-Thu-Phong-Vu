@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="26.978" timestamp="2026-06-11T09:38:04.682307+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="26.478" /></testsuite></testsuites>

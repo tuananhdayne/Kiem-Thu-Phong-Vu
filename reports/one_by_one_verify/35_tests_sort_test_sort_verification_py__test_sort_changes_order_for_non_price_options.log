@@ -1,0 +1,37 @@
+2026-06-11 13:34:40 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/sort/test_sort_verification.py::test_sort_changes_order_for_non_price_options 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_changes_order_for_non_price_options
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_changes_order_for_non_price_options
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Khuy\u1ebfn m\xe3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Khuy\u1ebfn m\xe3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: S\u1ea3n ph\u1ea9m b\xe1n ch\u1ea1y nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: S\u1ea3n ph\u1ea9m b\xe1n ch\u1ea1y nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: S\u1ea3n ph\u1ea9m m\u1edbi nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: S\u1ea3n ph\u1ea9m m\u1edbi nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_changes_order_for_non_price_options
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\35_tests_sort_test_sort_verification_py__test_sort_changes_order_for_non_price_options.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/35_tests_sort_test_sort_verification_py__test_sort_changes_order_for_non_price_options.html -
+============================= 1 passed in 26.31s ==============================

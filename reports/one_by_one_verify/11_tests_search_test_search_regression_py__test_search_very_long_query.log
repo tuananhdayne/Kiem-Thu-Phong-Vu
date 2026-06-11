@@ -1,0 +1,81 @@
+2026-06-11 13:24:28 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/search/test_search_regression.py::test_search_very_long_query 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_very_long_query
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_very_long_query
+FAILED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_very_long_query
+ERROR    phongvu-tests-selenium:conftest.py:488 Screenshot saved on failure: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_failed_20260611_132710.png
+INFO     phongvu-tests-selenium:conftest.py:428 Saved page source: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\pages\test_search_very_long_query_failed_20260611_132716.html
+INFO     phongvu-tests-selenium:conftest.py:451 Saved console logs: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\console\test_search_very_long_query_failed_20260611_132719_console.json
+WARNING  phongvu-tests-selenium:conftest.py:531 Stopping Selenium browser immediately after destructive failure: test_search_very_long_query
+
+
+================================== FAILURES ===================================
+_________________________ test_search_very_long_query _________________________
+timed out
+
+The above exception was the direct cause of the following exception:
+HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)
+
+During handling of the above exception, another exception occurred:
+FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 4. Lan paste gay treo: 5. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)
+---------------------------- Captured stderr setup ----------------------------
+2026-06-11 13:24:29 INFO     phongvu-tests-selenium START TEST: test_search_very_long_query
+
+2026-06-11 13:24:30 INFO     phongvu-tests-selenium SELENIUM_COMMAND_TIMEOUT=30
+
+2026-06-11 13:24:30 INFO     phongvu-tests-selenium CDP Network blocking enabled: tracking/analytics URLs blocked.
+
+2026-06-11 13:24:30 INFO     phongvu-tests-selenium Using isolated ChromeDriver for test: test_search_very_long_query
+
+----------------------------- Captured log setup ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_very_long_query
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_very_long_query
+---------------------------- Captured stdout call -----------------------------
+
+--- [START STRESS TEST: CTRL+A/C THEN SPAM CTRL+V, CHUNK 1,000,000 CHARS] ---
+Seed: da copy 1,000,000 ky tu vao clipboard bang Ctrl+A/C.
+Lan paste 1: Ctrl+V thanh cong, input 2,000,000/2,000,000 ky tu, click OK, trong 2.854 giay.
+[PROOF SCREENSHOT] D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_progress_paste_01_chars_2000000_20260611_132440.png
+Lan paste 2: Ctrl+V thanh cong, input 3,000,000/3,000,000 ky tu, click OK, trong 10.147 giay.
+[PROOF SCREENSHOT] D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_progress_paste_02_chars_3000000_20260611_132450.png
+Lan paste 3: Ctrl+V thanh cong, input 4,000,000/4,000,000 ky tu, click OK, trong 33.437 giay.
+[PROOF SCREENSHOT] D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_progress_paste_03_chars_4000000_20260611_132526.png
+Lan paste 4: Ctrl+V thanh cong, input 5,000,000/5,000,000 ky tu, click OK, trong 48.225 giay.
+[PROOF SCREENSHOT] D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_progress_paste_04_chars_5000000_20260611_132617.png
+[TREO PHAT HIEN] Trinh duyet bi treo hoan toan o lan paste thu 5. Loi: HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)
+-------------------------- Captured stderr teardown ---------------------------
+2026-06-11 13:27:10 INFO     phongvu-tests-selenium END TEST: test_search_very_long_query
+
+2026-06-11 13:27:16 ERROR    phongvu-tests-selenium Screenshot saved on failure: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_failed_20260611_132710.png
+
+2026-06-11 13:27:19 INFO     phongvu-tests-selenium Saved page source: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\pages\test_search_very_long_query_failed_20260611_132716.html
+
+2026-06-11 13:27:23 INFO     phongvu-tests-selenium Saved console logs: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\console\test_search_very_long_query_failed_20260611_132719_console.json
+
+2026-06-11 13:27:23 WARNING  phongvu-tests-selenium Stopping Selenium browser immediately after destructive failure: test_search_very_long_query
+
+---------------------------- Captured log teardown ----------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_very_long_query
+ERROR    phongvu-tests-selenium:conftest.py:488 Screenshot saved on failure: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_failed_20260611_132710.png
+INFO     phongvu-tests-selenium:conftest.py:428 Saved page source: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\pages\test_search_very_long_query_failed_20260611_132716.html
+INFO     phongvu-tests-selenium:conftest.py:451 Saved console logs: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\console\test_search_very_long_query_failed_20260611_132719_console.json
+WARNING  phongvu-tests-selenium:conftest.py:531 Stopping Selenium browser immediately after destructive failure: test_search_very_long_query
+============================== warnings summary ===============================
+tests/search/test_search_regression.py::test_search_very_long_query
+  d:\Kiem Thu\.venv\Lib\site-packages\pytest_html\selfcontained_report.py:31: UserWarning: Self-contained HTML report includes link to external resource: D:\Kiem Thu\reports\artifacts\one_by_one_verify_20260611\screenshots\test_search_very_long_query_failed_20260611_132710.png
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\11_tests_search_test_search_regression_py__test_search_very_long_query.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/11_tests_search_test_search_regression_py__test_search_very_long_query.html -
+=========================== short test summary info ===========================
+FAILED tests/search/test_search_regression.py::test_search_very_long_query - ...
+================== 1 failed, 1 warning in 176.30s (0:02:56) ===================

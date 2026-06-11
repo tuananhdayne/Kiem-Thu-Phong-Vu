@@ -1,0 +1,30 @@
+2026-06-11 13:21:42 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/search/test_search_functional.py::test_search_load_more_preserves_keyword 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_search_load_more_preserves_keyword
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_search_load_more_preserves_keyword
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:391 Searching keyword: 'Logitech'
+WARNING  phongvu-tests-selenium:base_page.py:39 No visible element found for selectors: ["a[rel='next']", 'ul.pagination li a', 'a.next', "button[aria-label='Next']", "a[aria-label='Next']", "nav[aria-label='Pagination'] a"]
+WARNING  phongvu-tests-selenium:base_page.py:39 No visible element found for selectors: ['button.load-more', 'button#load-more', '.btn-load-more', "button[aria-label*='Xem']", "button[aria-label*='Load']"]
+INFO     phongvu-tests-selenium:test_search_functional.py:144 Matched load-more control via xpath: //*[self::button or self::a][contains(normalize-space(.), 'Xem th\xeam s\u1ea3n ph\u1ea9m')]\nINFO     phongvu-tests-selenium:test_search_functional.py:80 --- [SEARCH LOAD MORE - BEFORE CLICK] 8 product(s) ---
+INFO     phongvu-tests-selenium:test_search_functional.py:87 1. B�n ph�m Logitech K120
+INFO     phongvu-tests-selenium:test_search_functional.py:87 2. Chu\u1ed9t Logitech B100\nINFO     phongvu-tests-selenium:test_search_functional.py:87 3. Chu\u1ed9t Logitech M331\nINFO     phongvu-tests-selenium:test_search_functional.py:87 4. Chu\u1ed9t Logitech B175\nINFO     phongvu-tests-selenium:test_search_functional.py:87 5. Chu\u1ed9t Logitech M100r\nINFO     phongvu-tests-selenium:test_search_functional.py:87 6. Chu\u1ed9t Logitech G304\nINFO     phongvu-tests-selenium:test_search_functional.py:87 7. Chu\u1ed9t Logitech M220\nINFO     phongvu-tests-selenium:test_search_functional.py:87 8. B�n ph�m Logitech K270
+INFO     phongvu-tests-selenium:test_search_functional.py:32 Scrolling to and clicking load_more
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 16 product names via fast DOM path.
+INFO     phongvu-tests-selenium:test_search_functional.py:80 --- [SEARCH LOAD MORE - AFTER CLICK] 16 product(s) ---
+INFO     phongvu-tests-selenium:test_search_functional.py:87 1. B�n ph�m Logitech K120
+INFO     phongvu-tests-selenium:test_search_functional.py:87 2. Chu\u1ed9t Logitech B100\nINFO     phongvu-tests-selenium:test_search_functional.py:87 3. Chu\u1ed9t Logitech M331\nINFO     phongvu-tests-selenium:test_search_functional.py:87 4. Chu\u1ed9t Logitech B175\nINFO     phongvu-tests-selenium:test_search_functional.py:87 5. Chu\u1ed9t Logitech M100r\nINFO     phongvu-tests-selenium:test_search_functional.py:87 6. Chu\u1ed9t Logitech G304\nINFO     phongvu-tests-selenium:test_search_functional.py:87 7. Chu\u1ed9t Logitech M220\nINFO     phongvu-tests-selenium:test_search_functional.py:87 8. B�n ph�m Logitech K270
+INFO     phongvu-tests-selenium:test_search_functional.py:87 9. Chu\u1ed9t Logitech M650L\nINFO     phongvu-tests-selenium:test_search_functional.py:87 10. Thi\u1ebft b\u1ecb ghi h\xecnh/ Webcam Logitech C270\nINFO     phongvu-tests-selenium:test_search_functional.py:87 11. Chu\u1ed9t Logitech M240\nINFO     phongvu-tests-selenium:test_search_functional.py:87 12. Chu\u1ed9t Logitech M221\nINFO     phongvu-tests-selenium:test_search_functional.py:87 13. Chu\u1ed9t Logitech G502 HERO\nINFO     phongvu-tests-selenium:test_search_functional.py:87 14. B�n ph�m Logitech K400 Plus
+INFO     phongvu-tests-selenium:test_search_functional.py:87 15. Chu\u1ed9t Logitech G402\nINFO     phongvu-tests-selenium:test_search_functional.py:87 16. Chu\u1ed9t Logitech G903 HERO\nPASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_search_load_more_preserves_keyword
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\05_tests_search_test_search_functional_py__test_search_load_more_preserves_keyword.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/05_tests_search_test_search_functional_py__test_search_load_more_preserves_keyword.html -
+============================= 1 passed in 35.62s ==============================

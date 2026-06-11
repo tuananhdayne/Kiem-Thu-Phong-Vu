@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="57.523" timestamp="2026-06-11T13:36:02.688609+07:00" hostname="TUANANH"><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="57.256" /></testsuite></testsuites>

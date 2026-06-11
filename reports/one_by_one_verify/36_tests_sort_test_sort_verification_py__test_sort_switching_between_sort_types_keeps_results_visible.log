@@ -1,0 +1,27 @@
+2026-06-11 13:35:07 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/sort/test_sort_verification.py::test_sort_switching_between_sort_types_keeps_results_visible 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_sort_switching_between_sort_types_keeps_results_visible
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_sort_switching_between_sort_types_keeps_results_visible
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Khuy\u1ebfn m\xe3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Khuy\u1ebfn m\xe3i t\u1ed1t nh\u1ea5t\nINFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 8 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 t\u0103ng d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 3 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 10 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:611 Applying sort option: Gi\xe1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:659 Applied sort option: Gi\xe1 gi\u1ea3m d\u1ea7n\nINFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 3 prices.
+INFO     phongvu-tests-selenium:catalog_page.py:331 Extracting visible product prices...
+INFO     phongvu-tests-selenium:catalog_page.py:358 Extracted 10 prices.
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_sort_switching_between_sort_types_keeps_results_visible
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\36_tests_sort_test_sort_verification_py__test_sort_switching_between_sort_types_keeps_results_visible.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/36_tests_sort_test_sort_verification_py__test_sort_switching_between_sort_types_keeps_results_visible.html -
+============================= 1 passed in 19.45s ==============================

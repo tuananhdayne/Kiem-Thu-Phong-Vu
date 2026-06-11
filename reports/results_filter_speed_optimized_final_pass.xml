@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="189.521" timestamp="2026-06-11T10:26:42.667808+07:00" hostname="TUANANH"><testcase classname="tests.filter.test_filter_advanced" name="test_filter_all_products_match_brand" time="36.939" /><testcase classname="tests.filter.test_filter_advanced" name="test_unfilter_restores_list" time="28.213" /><testcase classname="tests.filter.test_filter_advanced" name="test_filter_combination_no_results" time="18.773"><failure message="AssertionError: Không hiển thị thông báo no-result sau khi lọc + search&#10;assert 'không tìm thấy sản phẩm nào' in 'hệ thống showroom\ndành cho doanh nghiệp\napple education\nhotline: 18006867\ntin công nghệ\nxây dựng cấu hình\nkhuyến mãi\ndanh mục sản phẩm\nmacbook air m5   macbook neo   iphone 17   laptop            \nđăng nhập\nđăng ký\ngiỏ hàng của bạn\n(0) sản phẩm\nkhoảng giá\n0đ\n10.000.000đ\nsắp xếp theo\nkhuyến mãi tốt nhất\ngiá tăng dần\ngiá giảm dần\nsản phẩm mới nhất\nsản phẩm bán chạy nhất\nlaptop'">driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="0653a637104715e99d2aa851285286f7")&gt;
+test_config = {'base_url': 'https://phongvu.vn', 'pages': {'laptop': 'https://phongvu.vn/c/laptop', 'monitor': 'https://phongvu.vn/c...': 'Logitech', 'search_variants': ['logitech', 'Logitech', '  Logitech  ', 'Logitech!@#', 'nonexistentsku12345'], ...}}
+
+    def test_filter_combination_no_results(driver, test_config):
+        base_url = test_config["pages"]["laptop"]
+        brand = test_config["test_data"]["brand_to_filter"]
+        nonsense = test_config["test_data"].get("nonexistent_search", "noresults_xyz_98765")
+    
+        driver.get(base_url)
+        wait = WebDriverWait(driver, 12)
+    
+        click_checkbox_by_text(driver, brand, desired_state=True)
+        wait.until(lambda d: "brands=apple" in d.current_url.lower())
+    
+        search_with_keyword(driver, test_config, nonsense)
+    
+        body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
+        print("\n--- [FILTER ADVANCED TEST: COMBINATION NO RESULTS] ---")
+        print(f"Searched: {_safe_str(nonsense)} under brand {_safe_str(brand)}. Text found: 'khong tim thay san pham nao'")
+&gt;       assert "không tìm thấy sản phẩm nào" in body_text, "Không hiển thị thông báo no-result sau khi lọc + search"
+E       AssertionError: Không hiển thị thông báo no-result sau khi lọc + search
+E       assert 'không tìm thấy sản phẩm nào' in 'hệ thống showroom\ndành cho doanh nghiệp\napple education\nhotline: 18006867\ntin công nghệ\nxây dựng cấu hình\nkhuyến mãi\ndanh mục sản phẩm\nmacbook air m5   macbook neo   iphone 17   laptop            \nđăng nhập\nđăng ký\ngiỏ hàng của bạn\n(0) sản phẩm\nkhoảng giá\n0đ\n10.000.000đ\nsắp xếp theo\nkhuyến mãi tốt nhất\ngiá tăng dần\ngiá giảm dần\nsản phẩm mới nhất\nsản phẩm bán chạy nhất\nlaptop'
+
+tests\filter\test_filter_advanced.py:117: AssertionError</failure></testcase><testcase classname="tests.filter.test_filter_advanced" name="test_filter_multiple_conditions_then_remove_one_updates_results" time="52.240" /><testcase classname="tests.test_black_box_extended" name="test_filter_state_persists_after_reload" time="27.300" /><testcase classname="tests.test_black_box_extended" name="test_filter_then_sort_price_keeps_filtered_sorted_results" time="25.397" /></testsuite></testsuites>

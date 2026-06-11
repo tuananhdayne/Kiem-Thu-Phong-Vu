@@ -1,0 +1,25 @@
+2026-06-11 13:19:27 INFO     phongvu-tests-selenium selenium-pytest configured: logging initialized
+
+tests/filter/test_filter_advanced.py::test_unfilter_restores_list 
+------------------------------- live log setup --------------------------------
+INFO     phongvu-tests-selenium:conftest.py:100 START TEST: test_unfilter_restores_list
+INFO     phongvu-tests-selenium:conftest.py:152 SELENIUM_COMMAND_TIMEOUT=30
+INFO     phongvu-tests-selenium:conftest.py:173 CDP Network blocking enabled: tracking/analytics URLs blocked.
+INFO     phongvu-tests-selenium:conftest.py:390 Using isolated ChromeDriver for test: test_unfilter_restores_list
+-------------------------------- live log call --------------------------------
+INFO     phongvu-tests-selenium:catalog_page.py:499 Clicking filter checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:589 Clicked checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:499 Clicking filter checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:589 Clicked checkbox: Apple
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 20 product names via fast DOM path.
+INFO     phongvu-tests-selenium:catalog_page.py:305 Extracting visible product names...
+INFO     phongvu-tests-selenium:catalog_page.py:312 Extracted 20 product names via fast DOM path.
+PASSED                                                                   [100%]
+------------------------------ live log teardown ------------------------------
+INFO     phongvu-tests-selenium:conftest.py:105 END TEST: test_unfilter_restores_list
+
+
+- generated xml file: D:\Kiem Thu\reports\one_by_one_verify\02_tests_filter_test_filter_advanced_py__test_unfilter_restores_list.xml -
+- Generated html report: file:///D:/Kiem%20Thu/reports/one_by_one_verify/02_tests_filter_test_filter_advanced_py__test_unfilter_restores_list.html -
+============================= 1 passed in 33.34s ==============================

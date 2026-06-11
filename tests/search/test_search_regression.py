@@ -2,6 +2,7 @@ import os
 import time
 import unicodedata
 from urllib.parse import urlparse
+from pathlib import Path
 
 import pytest
 from selenium.webdriver.common.by import By
@@ -13,6 +14,7 @@ from pages.catalog_page import (
     extract_product_names,
     find_search_input,
     find_elements_within_results,
+    log_test_evidence,
     NO_RESULTS_TEXT,
 )
 from utils.parsers import is_sorted
@@ -30,16 +32,64 @@ def _short_error(text: str, limit: int = 500) -> str:
     return value if len(value) <= limit else f"{value[:limit]}... [truncated]"
 
 
+def _save_very_long_progress(driver, test_name: str, iteration: int, actual_length: int, elapsed: float) -> Path | None:
+    """Save a proof screenshot while the long-query page is still responsive."""
+    try:
+        project_root = Path(__file__).resolve().parents[2]
+        run_id = os.environ.get("RUN_ID") or time.strftime("run_%Y%m%d_%H%M%S")
+        screenshots_dir = project_root / "reports" / "artifacts" / run_id / "screenshots"
+        screenshots_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        screenshot_path = screenshots_dir / (
+            f"{test_name}_progress_paste_{iteration:02d}_chars_{actual_length}_{timestamp}.png"
+        )
+        driver.execute_script(
+            """
+            const text = arguments[0];
+            let box = document.getElementById('__pv_very_long_proof');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = '__pv_very_long_proof';
+                document.body.appendChild(box);
+            }
+            box.textContent = text;
+            box.style.cssText = [
+                'position:fixed',
+                'right:12px',
+                'top:48px',
+                'z-index:2147483647',
+                'background:#b91c1c',
+                'color:#fff',
+                'font:700 16px Arial,sans-serif',
+                'padding:10px 12px',
+                'border:3px solid #fff',
+                'box-shadow:0 2px 12px rgba(0,0,0,.35)',
+                'pointer-events:none'
+            ].join(';');
+            window.scrollTo(0, 0);
+            """,
+            f"VERY_LONG_PROOF paste={iteration} length={actual_length:,} elapsed={elapsed:.2f}s",
+        )
+        driver.save_screenshot(str(screenshot_path))
+        print(f"[PROOF SCREENSHOT] {screenshot_path}")
+        return screenshot_path
+    except Exception as exc:
+        print(f"[PROOF SCREENSHOT FAILED] {_short_error(exc)}")
+        return None
+
+
 def test_search_vietnamese_accent_and_no_accent(driver, test_config):
     """XĂ¡c thá»±c viá»‡c tĂ¬m kiáº¿m tiáº¿ng Viá»‡t cĂ³ dáº¥u vĂ  khĂ´ng dáº¥u Ä‘á»u tráº£ vá» káº¿t quáº£ liĂªn quan."""
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "\u0111i\u1ec7n tho\u1ea1i")
     with_accent = extract_product_names(driver, test_config, limit=8)
+    log_test_evidence("VIETNAMESE SEARCH WITH ACCENT", keyword="điện thoại", url=driver.current_url, products=with_accent)
     assert with_accent, "No results for accented Vietnamese keyword"
 
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "dien thoai")
     no_accent = extract_product_names(driver, test_config, limit=8)
+    log_test_evidence("VIETNAMESE SEARCH NO ACCENT", keyword="dien thoai", url=driver.current_url, products=no_accent)
     assert no_accent, "No results for unaccented Vietnamese keyword"
 
 
@@ -57,6 +107,13 @@ def test_search_empty_query(driver, test_config):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text.strip()
     search_input = find_search_input(driver, test_config, timeout=5)
+    log_test_evidence(
+        "EMPTY SEARCH RESULT",
+        original_url=original_url,
+        current_url=driver.current_url,
+        body_text_length=len(body_text),
+        search_input_displayed=search_input.is_displayed(),
+    )
     assert search_input.is_displayed(), "Search input is not usable after blank search"
 
 
@@ -199,6 +256,8 @@ def test_search_very_long_query(driver, test_config):
 
             elapsed = time.time() - start_time
             print(f"Lan paste {i}: Ctrl+V thanh cong, input {actual_length:,}/{expected_min_chars:,} ky tu, click OK, trong {elapsed:.3f} giay.")
+            if os.getenv("VERY_LONG_SAVE_PROGRESS", "1").lower() in ("1", "true", "yes"):
+                _save_very_long_progress(driver, "test_search_very_long_query", i, actual_length, elapsed)
             stable_iterations = i
 
         except Exception as exc:
@@ -275,6 +334,13 @@ def test_search_results_are_scoped_to_main_results_container(driver, test_config
     assert len(scoped) <= len(global_elements), "Scoped element count is larger than global element count"
 
     names = extract_product_names(driver, test_config, limit=8)
+    log_test_evidence(
+        "SCOPED SEARCH RESULT",
+        keyword=keyword,
+        scoped_element_count=len(scoped),
+        global_element_count=len(global_elements),
+        products=names,
+    )
     assert names, "Could not extract product names from the main results area"
 
 
@@ -284,6 +350,7 @@ def test_search_change_keyword_updates_results(driver, test_config):
 
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
     logitech_results = extract_product_names(driver, test_config, limit=5)
+    log_test_evidence("SEARCH BEFORE KEYWORD CHANGE", keyword="Logitech", url=driver.current_url, products=logitech_results)
     assert logitech_results, "No results for initial Logitech search"
 
     search_with_keyword(driver, test_config, "Samsung", timeout=8)
@@ -297,6 +364,7 @@ def test_search_change_keyword_updates_results(driver, test_config):
         time.sleep(0.3)
 
     assert samsung_results, "No results after changing keyword to Samsung"
+    log_test_evidence("SEARCH AFTER KEYWORD CHANGE", keyword="Samsung", url=driver.current_url, products=samsung_results)
     assert samsung_results != logitech_results, (
         "Search results did not change after replacing Logitech with Samsung. "
         f"Before={logitech_results}, after={samsung_results}"
@@ -312,6 +380,7 @@ def test_search_then_sort_price_keeps_relevant_sorted_results(driver, test_confi
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
 
     before_sort = extract_product_names(driver, test_config, limit=5)
+    log_test_evidence("SEARCH BEFORE SORT", keyword="Logitech", url=driver.current_url, products=before_sort)
     assert before_sort, "No Logitech results before sorting"
 
     sort_option = test_config["test_data"].get("sort_option_candidates")
@@ -325,5 +394,6 @@ def test_search_then_sort_price_keeps_relevant_sorted_results(driver, test_confi
         candidate = resolve_available_text(driver, test_config["test_data"].get("sort_option_candidates", []))
         apply_sort_option(driver, candidate)
 
-    prices = extract_product_names(driver, test_config, limit=5)
-    assert prices is not None
+    after_sort = extract_product_names(driver, test_config, limit=5)
+    log_test_evidence("SEARCH AFTER SORT", keyword="Logitech", url=driver.current_url, products=after_sort)
+    assert after_sort is not None

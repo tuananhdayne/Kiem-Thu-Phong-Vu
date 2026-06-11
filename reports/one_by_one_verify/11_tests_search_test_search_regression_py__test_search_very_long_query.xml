@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="176.266" timestamp="2026-06-11T13:24:28.428773+07:00" hostname="TUANANH"><testcase classname="tests.search.test_search_regression" name="test_search_very_long_query" time="175.503"><failure message="Failed: FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 4. Lan paste gay treo: 5. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)">timed out
+
+The above exception was the direct cause of the following exception:
+HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)
+
+During handling of the above exception, another exception occurred:
+FREEZE: Trinh duyet bi treo hoan toan. So lan paste on dinh truoc khi treo: 4. Lan paste gay treo: 5. Click sau khi khong them du ky tu: KHONG THUC HIEN DUOC vi browser/WebDriver timeout trong luc Ctrl+V. Loi: HTTPConnectionPool(host='localhost', port=63015): Read timed out. (read timeout=30)</failure></testcase></testsuite></testsuites>

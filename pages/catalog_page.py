@@ -14,6 +14,36 @@ logger = logging.getLogger("phongvu-tests-selenium")
 NO_RESULTS_TEXT = "kh\u00f4ng t\u00ecm th\u1ea5y s\u1ea3n ph\u1ea9m n\u00e0o"
 
 
+def _safe_log_text(value, limit=180):
+    return shorten_for_log(str(value or "").replace("\r", " ").replace("\n", " "), limit=limit)
+
+
+def log_test_evidence(label, **fields):
+    """Print and log a compact evidence block for pytest reports."""
+    header = f"--- [EVIDENCE: {label}] ---"
+    print(f"\n{header}")
+    logger.info(header)
+    if not fields:
+        print("(no fields)")
+        logger.info("(no fields)")
+        return
+    for key, value in fields.items():
+        if isinstance(value, (list, tuple)):
+            print(f"{key}: {len(value)} item(s)")
+            logger.info("%s: %s item(s)", key, len(value))
+            if not value:
+                print("  (empty)")
+                logger.info("  (empty)")
+            for index, item in enumerate(value, 1):
+                line = f"  {index}. {_safe_log_text(item)}"
+                print(line)
+                logger.info(line)
+        else:
+            line = f"{key}: {_safe_log_text(value, limit=500)}"
+            print(line)
+            logger.info(line)
+
+
 def _normalize_text(text):
     value = unicodedata.normalize("NFD", str(text or ""))
     value = "".join(char for char in value if unicodedata.category(char) != "Mn")
@@ -237,6 +267,61 @@ def get_product_name_elements(driver, config, timeout=3):
     return find_elements_within_results(driver, config, config["selectors"]["product_name"], timeout=timeout)
 
 
+def _extract_visible_texts_fast(driver, selectors, limit=20, require_after_sort=True):
+    """Extract visible texts in one browser-side pass to avoid slow per-element WebDriver calls."""
+    try:
+        return driver.execute_script(
+            """
+            const selectors = arguments[0];
+            const limit = arguments[1];
+            const requireAfterSort = arguments[2];
+            const seen = new Set();
+            const items = [];
+            let minY = -Infinity;
+
+            if (requireAfterSort) {
+                const sortNode = document.evaluate(
+                    "//*[normalize-space()='Sắp xếp theo']",
+                    document,
+                    null,
+                    XPathResult.FIRST_ORDERED_NODE_TYPE,
+                    null
+                ).singleNodeValue;
+                if (!sortNode) return [];
+                const sortRect = sortNode.getBoundingClientRect();
+                minY = sortRect.bottom + window.scrollY - 2;
+            }
+
+            for (const selector of selectors) {
+                for (const el of document.querySelectorAll(selector)) {
+                    const rect = el.getBoundingClientRect();
+                    const style = window.getComputedStyle(el);
+                    if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+                    if ((rect.top + window.scrollY) <= minY) continue;
+                    if (style.visibility === 'hidden' || style.display === 'none') continue;
+                    const text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+                    if (!text || seen.has(text)) continue;
+                    seen.add(text);
+                    items.push({
+                        text,
+                        top: rect.top + window.scrollY,
+                        left: rect.left + window.scrollX,
+                    });
+                }
+                if (items.length >= limit) break;
+            }
+
+            items.sort((a, b) => (a.top - b.top) || (a.left - b.left));
+            return items.slice(0, limit).map((item) => item.text);
+            """,
+            selectors,
+            int(limit),
+            bool(require_after_sort),
+        )
+    except Exception:
+        return []
+
+
 def extract_product_names(driver, config, limit=20, timeout=3):
     """Extract unique visible product names from the current listing page."""
     try:
@@ -248,6 +333,21 @@ def extract_product_names(driver, config, limit=20, timeout=3):
         pass
 
     logger.info("Extracting visible product names...")
+    fast_selectors = [
+        selector for selector in config["selectors"]["product_name"]
+        if selector != "[class*='product'] h3"
+    ]
+    fast_names = _extract_visible_texts_fast(driver, fast_selectors, limit=limit)
+    if fast_names:
+        logger.info("Extracted %s product names via fast DOM path.", len(fast_names))
+        log_test_evidence(
+            "PRODUCT NAMES",
+            url=driver.current_url,
+            count=len(fast_names),
+            products=fast_names,
+        )
+        return fast_names
+
     names = []
     for element in get_product_name_elements(driver, config, timeout=timeout):
         try:
@@ -259,6 +359,12 @@ def extract_product_names(driver, config, limit=20, timeout=3):
         if len(names) >= limit:
             break
     logger.info("Extracted %s product names.", len(names))
+    log_test_evidence(
+        "PRODUCT NAMES",
+        url=driver.current_url,
+        count=len(names),
+        products=names,
+    )
     return names
 
 
@@ -292,6 +398,12 @@ def extract_latest_prices(driver, config, limit=20, timeout=3):
             break
 
     logger.info("Extracted %s prices.", len(prices))
+    log_test_evidence(
+        "LATEST PRICES",
+        url=driver.current_url,
+        count=len(prices),
+        prices=[f"{price:,} VND" for price in prices],
+    )
     return prices
 
 
@@ -372,6 +484,7 @@ def search_with_keyword(driver, config, keyword, wait_for_results=True, timeout=
             search_input.send_keys(Keys.ENTER)
 
     if not wait_for_results:
+        log_test_evidence("SEARCH SUBMITTED", keyword=keyword_str, url=driver.current_url)
         return
 
     logger.info("Waiting for search results to be ready...")
@@ -379,8 +492,8 @@ def search_with_keyword(driver, config, keyword, wait_for_results=True, timeout=
     def _search_state_ready():
         try:
             body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
-            names = extract_product_names(driver, config, limit=1)
-            return bool(names) or NO_RESULTS_TEXT in body_text or "tim-kiem" in driver.current_url.lower()
+            names = extract_product_names(driver, config, limit=2)
+            return len(names) >= 2 or NO_RESULTS_TEXT in body_text
         except Exception:
             return False
 
@@ -389,9 +502,16 @@ def search_with_keyword(driver, config, keyword, wait_for_results=True, timeout=
     while time.time() < end_time:
         if _search_state_ready():
             logger.info("Search result state became ready after %.2f seconds.", time.time() - start_time)
+            log_test_evidence(
+                "SEARCH READY",
+                keyword=keyword_str,
+                url=driver.current_url,
+                elapsed_seconds=f"{time.time() - start_time:.2f}",
+            )
             return
         time.sleep(0.25)
     logger.warning("Timed out waiting for a concrete search-result state.")
+    log_test_evidence("SEARCH WAIT TIMEOUT", keyword=keyword_str, url=driver.current_url)
 
 
 def resolve_available_text(driver, candidates, timeout=10):
@@ -430,7 +550,7 @@ def resolve_available_text(driver, candidates, timeout=10):
     raise AssertionError(f"No candidate text found. Candidates: {candidates}. Available: {available_texts}")
 
 
-def click_checkbox_by_text(driver, checkbox_text, timeout=10):
+def click_checkbox_by_text(driver, checkbox_text, timeout=8, desired_state=None):
     """Click a visible checkbox or checkbox label by display text."""
     logger.info("Clicking filter checkbox: %s", checkbox_text)
     checkbox_xpath = (
@@ -481,15 +601,65 @@ def click_checkbox_by_text(driver, checkbox_text, timeout=10):
     if not checkbox:
         raise Exception(f"Could not find checkbox or label containing: {checkbox_text}")
 
-    try:
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", checkbox)
-        time.sleep(0.05)
-        checkbox.click()
-    except Exception:
-        driver.execute_script("arguments[0].click();", checkbox)
+    def _target_for_click(element):
+        try:
+            if element.tag_name.lower() == "input":
+                labels = element.find_elements(By.XPATH, "./ancestor::label[1]")
+                if labels:
+                    return labels[0]
+        except Exception:
+            pass
+        return element
 
-    logger.info("Clicked checkbox: %s", checkbox_text)
-    return checkbox
+    def _is_checked(element):
+        try:
+            if element.tag_name.lower() == "input":
+                return element.is_selected()
+            inputs = element.find_elements(By.XPATH, ".//input[@type='checkbox']")
+            return any(item.is_selected() for item in inputs)
+        except StaleElementReferenceException:
+            return True
+        except Exception:
+            return False
+
+    def _click_once(element, use_js=False):
+        target = _target_for_click(element)
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", target)
+        time.sleep(0.1)
+        if use_js:
+            driver.execute_script("arguments[0].click();", target)
+        else:
+            target.click()
+
+    original_url = driver.current_url
+    last_error = None
+    for attempt in range(1, 4):
+        try:
+            _click_once(checkbox, use_js=True)
+            end_time = time.time() + min(2.5, max(1, timeout / 3))
+            while time.time() < end_time:
+                try:
+                    checked = _is_checked(checkbox)
+                    state_ok = checked if desired_state is None else checked == desired_state
+                    if state_ok or driver.current_url != original_url:
+                        logger.info("Clicked checkbox: %s", checkbox_text)
+                        return checkbox
+                except StaleElementReferenceException:
+                    logger.info("Clicked checkbox: %s", checkbox_text)
+                    return checkbox
+                time.sleep(0.15)
+        except Exception as exc:
+            last_error = exc
+            try:
+                driver.execute_script("arguments[0].click();", _target_for_click(checkbox))
+            except Exception as js_exc:
+                last_error = js_exc
+        time.sleep(0.25)
+
+    raise Exception(
+        f"Clicked checkbox label but state/url did not change for: {checkbox_text}. "
+        f"Current URL: {driver.current_url}. Last error: {last_error}"
+    )
 
 
 def apply_sort_option(driver, option_text, timeout=5):
