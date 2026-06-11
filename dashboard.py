@@ -1468,18 +1468,30 @@ def main() -> None:
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "4"
             os.environ["DESTRUCTIVE_SCRIPT_TIMEOUT"] = "2"
             os.environ["DESTRUCTIVE_MAX_RESPONSE_SECONDS"] = "8"
+            os.environ["VERY_LONG_COMMAND_TIMEOUT"] = "4"
+            os.environ["VERY_LONG_QUERY_CHUNK_SIZE"] = "2000000"
+            os.environ["VERY_LONG_QUERY_ITERATIONS"] = "20"
+            os.environ["VERY_LONG_SAVE_PROGRESS_EVERY"] = "2"
             os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "1"
             os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "1"
         elif actual_mode == "All including destructive/security":
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "30"
             os.environ["DESTRUCTIVE_SCRIPT_TIMEOUT"] = "2"
             os.environ["DESTRUCTIVE_MAX_RESPONSE_SECONDS"] = "8"
+            os.environ["VERY_LONG_COMMAND_TIMEOUT"] = "8"
+            os.environ["VERY_LONG_QUERY_CHUNK_SIZE"] = "2000000"
+            os.environ["VERY_LONG_QUERY_ITERATIONS"] = "20"
+            os.environ["VERY_LONG_SAVE_PROGRESS_EVERY"] = "2"
             os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS"] = "1"
             os.environ["SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT"] = "1"
         else:
             os.environ["SELENIUM_COMMAND_TIMEOUT"] = "30"
             os.environ.pop("DESTRUCTIVE_SCRIPT_TIMEOUT", None)
             os.environ.pop("DESTRUCTIVE_MAX_RESPONSE_SECONDS", None)
+            os.environ.pop("VERY_LONG_COMMAND_TIMEOUT", None)
+            os.environ.pop("VERY_LONG_QUERY_CHUNK_SIZE", None)
+            os.environ.pop("VERY_LONG_QUERY_ITERATIONS", None)
+            os.environ.pop("VERY_LONG_SAVE_PROGRESS_EVERY", None)
             os.environ.pop("SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS", None)
             os.environ.pop("SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT", None)
         os.environ["STREAMLIT_DASHBOARD_RUN"] = "1"

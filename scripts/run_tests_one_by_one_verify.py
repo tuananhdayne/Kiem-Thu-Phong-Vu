@@ -121,6 +121,10 @@ def main():
             "SELENIUM_CAPTURE_DESTRUCTIVE_ARTIFACTS": "1",
             "SELENIUM_CAPTURE_DESTRUCTIVE_SCREENSHOT": "1",
             "VERY_LONG_SAVE_PROGRESS": "1",
+            "VERY_LONG_SAVE_PROGRESS_EVERY": "2",
+            "VERY_LONG_COMMAND_TIMEOUT": "8",
+            "VERY_LONG_QUERY_CHUNK_SIZE": "2000000",
+            "VERY_LONG_QUERY_ITERATIONS": "20",
         }
     )
 

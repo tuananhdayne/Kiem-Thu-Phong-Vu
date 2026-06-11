@@ -10,6 +10,7 @@ from pages.catalog_page import (
     click_checkbox_by_text,
     extract_latest_prices,
     extract_product_names,
+    log_test_evidence,
     resolve_available_text,
     wait_products_updated,
 )
@@ -35,6 +36,7 @@ def test_filter_state_persists_after_reload(driver, test_config):
     click_checkbox_by_text(driver, brand, desired_state=True)
     WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
     filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=8)
+    log_test_evidence("FILTER STATE BEFORE RELOAD", brand=brand, url=driver.current_url, products=filtered_names)
     print("\n--- [FILTER EXTENDED TEST: FILTERED PRODUCTS] ---")
     for i, name in enumerate(filtered_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -43,6 +45,7 @@ def test_filter_state_persists_after_reload(driver, test_config):
     driver.refresh()
     WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
     reloaded_names = extract_product_names(driver, test_config, limit=10)
+    log_test_evidence("FILTER STATE AFTER RELOAD", brand=brand, url=driver.current_url, products=reloaded_names)
     print("\n--- [FILTER EXTENDED TEST: PRODUCTS AFTER RELOAD] ---")
     for i, name in enumerate(reloaded_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -66,6 +69,7 @@ def test_filter_then_sort_price_keeps_filtered_sorted_results(driver, test_confi
     click_checkbox_by_text(driver, brand, desired_state=True)
     WebDriverWait(driver, 10).until(lambda d: "brands=apple" in d.current_url.lower())
     filtered_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=8)
+    log_test_evidence("FILTER BEFORE SORT", brand=brand, url=driver.current_url, products=filtered_names)
     print("\n--- [FILTER + SORT EXTENDED TEST: FILTERED ONLY] ---")
     for i, name in enumerate(filtered_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -83,6 +87,14 @@ def test_filter_then_sort_price_keeps_filtered_sorted_results(driver, test_confi
         time.sleep(0.3)
 
     names_after_sort = extract_product_names(driver, test_config, limit=10)
+    log_test_evidence(
+        "FILTER AFTER SORT",
+        brand=brand,
+        sort_option=sort_option,
+        url=driver.current_url,
+        products=names_after_sort,
+        prices=[f"{price:,} VND" for price in prices],
+    )
     print("\n--- [FILTER + SORT EXTENDED TEST: FILTERED AND SORTED] ---")
     for name, price in zip(names_after_sort[:5], prices[:5]):
         print(f"Product: {_safe_str(name)} | Price: {price:,} VND")

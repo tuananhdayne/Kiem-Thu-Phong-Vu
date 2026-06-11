@@ -295,22 +295,22 @@ def test_search_autocomplete_suggestion_click_navigates_to_results(driver, test_
             try:
                 elements = driver.find_elements(By.CSS_SELECTOR, sel)
                 visible = [e for e in elements if e.is_displayed()]
-            if visible:
-                visible_texts = []
-                for item in visible[:8]:
-                    try:
-                        text = item.text.strip()
-                        if text:
-                            visible_texts.append(text)
-                    except Exception:
-                        pass
-                log_test_evidence(
-                    "AUTOCOMPLETE SUGGESTIONS",
-                    partial=partial,
-                    selector=sel,
-                    suggestions=visible_texts,
-                )
-                suggestion = visible[0]
+                if visible:
+                    visible_texts = []
+                    for item in visible[:8]:
+                        try:
+                            text = item.text.strip()
+                            if text:
+                                visible_texts.append(text)
+                        except Exception:
+                            pass
+                    log_test_evidence(
+                        "AUTOCOMPLETE SUGGESTIONS",
+                        partial=partial,
+                        selector=sel,
+                        suggestions=visible_texts,
+                    )
+                    suggestion = visible[0]
                     try:
                         LOGGER.info("DEBUG: selector matched: %s", sel)
                         LOGGER.info("DEBUG: suggestion outerHTML: %s", suggestion.get_attribute('outerHTML')[:1000])

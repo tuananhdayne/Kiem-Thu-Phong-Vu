@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from pages.catalog_page import (
     extract_product_names,
     click_checkbox_by_text,
+    log_test_evidence,
     wait_products_updated,
     search_with_keyword,
 )
@@ -46,6 +47,7 @@ def test_filter_all_products_match_brand(driver, test_config):
     wait = WebDriverWait(driver, 12)
 
     old_names = extract_product_names(driver, test_config, limit=20)
+    log_test_evidence("FILTER BEFORE BRAND", brand=brand, url=driver.current_url, products=old_names)
     print("\n--- [FILTER ADVANCED TEST: BEFORE BRAND FILTER] ---")
     for i, name in enumerate(old_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -54,6 +56,7 @@ def test_filter_all_products_match_brand(driver, test_config):
     wait.until(lambda d: "brands=apple" in d.current_url.lower())
 
     new_names = wait_products_updated(driver, test_config, old_names, target_brand=brand, timeout=15)
+    log_test_evidence("FILTER AFTER BRAND", brand=brand, url=driver.current_url, products=new_names)
     print("\n--- [FILTER ADVANCED TEST: AFTER BRAND FILTER] ---")
     for i, name in enumerate(new_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -93,6 +96,7 @@ def test_unfilter_restores_list(driver, test_config):
     print("\n--- [FILTER ADVANCED TEST: RESTORED LIST AFTER UNFILTER] ---")
     for i, name in enumerate(restored[:5], 1):
         print(f"{i}. {_safe_str(name)}")
+    log_test_evidence("FILTER AFTER UNFILTER", brand=brand, url=driver.current_url, products=restored)
 
     assert restored, "Danh sách sản phẩm sau khi bỏ lọc rỗng"
     assert any(not any(k in name.lower() for k in match_keywords) for name in restored), "Danh sách sau khi bỏ lọc vẫn chỉ chứa thương hiệu đã lọc"
@@ -115,6 +119,13 @@ def test_filter_combination_no_results(driver, test_config):
     body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
     print("\n--- [FILTER ADVANCED TEST: COMBINATION NO RESULTS] ---")
     print(f"Searched: {_safe_str(nonsense)} under brand {_safe_str(brand)}. Text found: 'khong tim thay san pham nao'")
+    log_test_evidence(
+        "FILTER + SEARCH NO RESULT",
+        brand=brand,
+        keyword=nonsense,
+        url=driver.current_url,
+        no_result_text_found="không tìm thấy sản phẩm nào" in body_text,
+    )
     assert "không tìm thấy sản phẩm nào" in body_text, "Không hiển thị thông báo no-result sau khi lọc + search"
 
 
@@ -128,12 +139,20 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
 
     old_names = extract_product_names(driver, test_config, limit=10)
     labels = _visible_filter_label_texts(driver)
+    log_test_evidence("VISIBLE FILTER LABELS", url=driver.current_url, labels=labels[:12])
     assert len(labels) >= 2, "Không đủ filter để kiểm tra việc bỏ một điều kiện"
 
     first_label, second_label = labels[:2]
     click_checkbox_by_text(driver, first_label, desired_state=True)
     click_checkbox_by_text(driver, second_label, desired_state=True)
     combined_names = wait_products_updated(driver, test_config, old_names, timeout=8)
+    log_test_evidence(
+        "FILTER TWO CONDITIONS",
+        first_filter=first_label,
+        second_filter=second_label,
+        url=driver.current_url,
+        products=combined_names,
+    )
     print(f"\n--- [FILTER ADVANCED TEST: MULTI-FILTER ({_safe_str(first_label)} + {_safe_str(second_label)})] ---")
     for i, name in enumerate(combined_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
@@ -153,6 +172,13 @@ def test_filter_multiple_conditions_then_remove_one_updates_results(driver, test
     print(f"\n--- [FILTER ADVANCED TEST: REMOVED ONE FILTER ({_safe_str(first_label)} removed, keeping {_safe_str(second_label)})] ---")
     for i, name in enumerate(updated_names[:5], 1):
         print(f"{i}. {_safe_str(name)}")
+    log_test_evidence(
+        "FILTER REMOVE ONE CONDITION",
+        removed_filter=first_label,
+        kept_filter=second_label,
+        url=driver.current_url,
+        products=updated_names,
+    )
 
     assert updated_names, "Không có sản phẩm sau khi bỏ một filter"
     assert updated_names != combined_names, "Danh sách không đổi sau khi bỏ một filter"

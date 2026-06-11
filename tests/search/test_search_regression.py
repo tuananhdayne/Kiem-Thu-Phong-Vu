@@ -120,6 +120,7 @@ def test_search_empty_query(driver, test_config):
 @pytest.mark.destructive
 def test_search_very_long_query(driver, test_config):
     """Destructive: mimic manual Ctrl+A/C/Ctrl+V spam until input or click stops responding."""
+    os.environ.setdefault("RUN_ID", time.strftime("run_%Y%m%d_%H%M%S"))
     driver.get(test_config["base_url"])
     time.sleep(2)
 
@@ -127,14 +128,28 @@ def test_search_very_long_query(driver, test_config):
     if isinstance(selectors, str):
         selectors = [selectors]
 
-    chunk_size = int(os.getenv("VERY_LONG_QUERY_CHUNK_SIZE", "1000000"))  # copied text size
-    max_iterations = int(os.getenv("VERY_LONG_QUERY_ITERATIONS", "100"))  # paste attempts after copy
-    script_timeout = float(os.getenv("VERY_LONG_QUERY_SCRIPT_TIMEOUT", "15"))
+    chunk_size = int(os.getenv("VERY_LONG_QUERY_CHUNK_SIZE", "2000000"))  # copied text size
+    max_iterations = int(os.getenv("VERY_LONG_QUERY_ITERATIONS", "20"))  # paste attempts after copy
+    script_timeout = float(os.getenv("VERY_LONG_QUERY_SCRIPT_TIMEOUT", "8"))
+    command_timeout = int(os.getenv("VERY_LONG_COMMAND_TIMEOUT", "8"))
+    progress_every = max(1, int(os.getenv("VERY_LONG_SAVE_PROGRESS_EVERY", "2")))
     stable_iterations = 0
 
     print(f"\n--- [START STRESS TEST: CTRL+A/C THEN SPAM CTRL+V, CHUNK {chunk_size:,} CHARS] ---")
+    log_test_evidence(
+        "VERY LONG CONFIG",
+        chunk_size=f"{chunk_size:,}",
+        max_iterations=max_iterations,
+        script_timeout_seconds=script_timeout,
+        command_timeout_seconds=command_timeout,
+        progress_screenshot_every=progress_every,
+    )
 
     driver.set_script_timeout(script_timeout)
+    try:
+        driver.command_executor._client_config.timeout = command_timeout
+    except Exception:
+        pass
     seed_result = driver.execute_script(
         """
         const selectors = arguments[0];
@@ -173,6 +188,7 @@ def test_search_very_long_query(driver, test_config):
         search_input,
     )
     print(f"Seed: da copy {seed_length:,} ky tu vao clipboard bang Ctrl+A/C.")
+    log_test_evidence("VERY LONG SEED", seed_length=f"{seed_length:,}", url=driver.current_url)
 
     for i in range(1, max_iterations + 1):
         expected_min_chars = (i + 1) * chunk_size
@@ -203,6 +219,16 @@ def test_search_very_long_query(driver, test_config):
                     click_error = _short_error(click_exc)
 
                 click_status = "OK" if click_ok else "FAIL"
+                log_test_evidence(
+                    "VERY LONG FREEZE DETECTED",
+                    mode="input length stopped increasing",
+                    stable_pastes_before_freeze=stable_iterations,
+                    failing_paste=i,
+                    expected_min_chars=f"{expected_min_chars:,}",
+                    actual_chars=f"{actual_length:,}",
+                    click_status=click_status,
+                    click_error=click_error,
+                )
                 print(
                     f"[TREO PHAT HIEN] Ctrl+V khong them du ky tu o lan paste thu {i}. "
                     f"Can toi thieu {expected_min_chars:,}, thuc te {actual_length:,}. "
@@ -245,6 +271,13 @@ def test_search_very_long_query(driver, test_config):
             after_click_count = int(driver.execute_script("return window.__pvClickProbeCount || 0;"))
 
             if after_click_count <= before_click_count:
+                log_test_evidence(
+                    "VERY LONG FREEZE DETECTED",
+                    mode="real click no longer handled",
+                    stable_pastes_before_freeze=stable_iterations,
+                    failing_paste=i,
+                    actual_chars=f"{actual_length:,}",
+                )
                 print(f"[TREO PHAT HIEN] Trang con cuon duoc nhung khong xu ly click that o lan paste thu {i}.")
                 pytest.fail(
                     "FREEZE: Trang khong con phan hoi voi click that. "
@@ -256,11 +289,30 @@ def test_search_very_long_query(driver, test_config):
 
             elapsed = time.time() - start_time
             print(f"Lan paste {i}: Ctrl+V thanh cong, input {actual_length:,}/{expected_min_chars:,} ky tu, click OK, trong {elapsed:.3f} giay.")
-            if os.getenv("VERY_LONG_SAVE_PROGRESS", "1").lower() in ("1", "true", "yes"):
+            log_test_evidence(
+                "VERY LONG PASTE OK",
+                paste=i,
+                actual_chars=f"{actual_length:,}",
+                expected_min_chars=f"{expected_min_chars:,}",
+                click_status="OK",
+                elapsed_seconds=f"{elapsed:.3f}",
+            )
+            if (
+                os.getenv("VERY_LONG_SAVE_PROGRESS", "1").lower() in ("1", "true", "yes")
+                and (i == 1 or i % progress_every == 0)
+            ):
                 _save_very_long_progress(driver, "test_search_very_long_query", i, actual_length, elapsed)
             stable_iterations = i
 
         except Exception as exc:
+            log_test_evidence(
+                "VERY LONG FREEZE DETECTED",
+                mode="browser or WebDriver timeout",
+                stable_pastes_before_freeze=stable_iterations,
+                failing_paste=i,
+                command_timeout_seconds=command_timeout,
+                error=_short_error(exc),
+            )
             print(f"[TREO PHAT HIEN] Trinh duyet bi treo hoan toan o lan paste thu {i}. Loi: {_short_error(exc)}")
             pytest.fail(
                 "FREEZE: Trinh duyet bi treo hoan toan. "
