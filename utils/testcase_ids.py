@@ -64,6 +64,54 @@ _SQL_PAYLOAD_IDS = {
     "admin' --": "TC_SEARCH_29",
 }
 
+_TESTCASE_PASS_CONCLUSIONS = {
+    "TC_SEARCH_01": "Danh sách sản phẩm sau khi xem thêm vẫn giữ đúng ngữ cảnh từ khóa tìm kiếm.",
+    "TC_SEARCH_02": "URL tìm kiếm trực tiếp tải được kết quả liên quan đến từ khóa.",
+    "TC_SEARCH_03": "Click gợi ý autocomplete điều hướng đến trang kết quả hợp lệ.",
+    "TC_SEARCH_04": "Tìm kiếm bằng Enter và click icon cho danh sách sản phẩm tương đương.",
+    "TC_SEARCH_05": "Từ khóa tiếng Việt có dấu/không dấu vẫn được xử lý ổn định.",
+    "TC_SEARCH_06": "Tìm kiếm rỗng không làm trang lỗi hoặc crash.",
+    "TC_SEARCH_07": "Chuỗi rất dài vẫn không làm trình duyệt mất phản hồi.",
+    "TC_SEARCH_08": "Danh sách sản phẩm được lấy đúng từ vùng kết quả chính.",
+    "TC_SEARCH_09": "Đổi từ khóa làm danh sách sản phẩm cập nhật đúng.",
+    "TC_SEARCH_10": "Tìm kiếm rồi sắp xếp theo giá vẫn giữ sản phẩm liên quan và thứ tự giá hợp lệ.",
+    "TC_SEARCH_11": "Từ khóa viết thường vẫn trả về sản phẩm liên quan.",
+    "TC_SEARCH_12": "Từ khóa chuẩn trả về danh sách sản phẩm liên quan.",
+    "TC_SEARCH_13": "Từ khóa có khoảng trắng đầu/cuối vẫn được xử lý đúng.",
+    "TC_SEARCH_14": "Từ khóa có ký tự đặc biệt không làm trang lỗi và vẫn được xử lý an toàn.",
+    "TC_SEARCH_15": "Từ khóa sai chính tả nhẹ vẫn trả về sản phẩm liên quan.",
+    "TC_SEARCH_16": "Từ khóa bị tách khoảng trắng vẫn trả về kết quả hợp lệ.",
+    "TC_SEARCH_17": "Từ khóa thừa ký tự cuối vẫn được hệ thống xử lý đúng kỳ vọng.",
+    "TC_SEARCH_18": "Từ khóa thiếu ký tự vẫn trả về kết quả hợp lệ.",
+    "TC_SEARCH_19": "Từ khóa lẫn số được xử lý an toàn và không làm trang lỗi.",
+    "TC_SEARCH_20": "Không tìm thấy sản phẩm nhưng trang hiển thị trạng thái no-result hợp lệ.",
+    "TC_SEARCH_21": "Payload XSS script không được thực thi trên trình duyệt.",
+    "TC_SEARCH_22": "Payload XSS qua thẻ ảnh/onerror không được thực thi.",
+    "TC_SEARCH_23": "Payload SQL OR 1=1 dạng nháy đơn được xử lý an toàn.",
+    "TC_SEARCH_24": "Payload SQL OR 1=1 dạng nháy kép được xử lý an toàn.",
+    "TC_SEARCH_25": "Payload SQL UNION NULL không làm lộ dữ liệu hoặc lỗi hệ thống.",
+    "TC_SEARCH_26": "Payload SQL dò username/password không làm lộ dữ liệu nhạy cảm.",
+    "TC_SEARCH_27": "Payload SQL UNION đóng ngoặc được xử lý an toàn.",
+    "TC_SEARCH_28": "Payload SQL DROP TABLE không gây tác động phá hoại.",
+    "TC_SEARCH_29": "Payload SQL admin comment không bypass hoặc trả dữ liệu bất thường.",
+    "TC_FILTER_01": "Tất cả sản phẩm sau lọc phù hợp với thương hiệu đã chọn.",
+    "TC_FILTER_02": "Bỏ lọc khôi phục danh sách sản phẩm về trạng thái hợp lệ.",
+    "TC_FILTER_03": "Tổ hợp filter và keyword không tồn tại hiển thị trạng thái không có sản phẩm hợp lệ.",
+    "TC_FILTER_04": "Bỏ một điều kiện lọc làm danh sách cập nhật đúng.",
+    "TC_FILTER_05": "Trạng thái lọc vẫn được giữ sau khi reload trang.",
+    "TC_FILTER_06": "Lọc rồi sắp xếp theo giá vẫn giữ đúng điều kiện lọc và thứ tự giá.",
+    "TC_SORT_01": "Giá sản phẩm được sắp xếp đúng theo chiều tăng/giảm.",
+    "TC_SORT_02": "Các tùy chọn sắp xếp không theo giá vẫn giữ danh sách hiển thị hợp lệ.",
+    "TC_SORT_03": "Chuyển qua lại giữa các kiểu sắp xếp không làm mất kết quả.",
+    "TC_SORT_04": "Trạng thái sắp xếp được bảo toàn sau reload và điều hướng.",
+}
+
+_TESTCASE_FAIL_CONCLUSIONS = {
+    "TC_SEARCH_07": "Phát hiện defect: dữ liệu rất dài làm trình duyệt chậm, treo hoặc không thể thao tác tiếp.",
+    "TC_SEARCH_20": "Không tìm thấy trạng thái no-result hợp lệ hoặc trang phản hồi sai khi không có sản phẩm.",
+    "TC_SORT_02": "Thứ tự sản phẩm không thay đổi đúng kỳ vọng sau khi chọn sắp xếp.",
+}
+
 
 def _cell_text(cell, shared_strings):
     cell_type = cell.attrib.get("t")
@@ -155,3 +203,20 @@ def testcase_meta_for_nodeid(nodeid):
         return None
     title = workbook_testcase_titles().get(testcase_id, "")
     return {"id": testcase_id, "title": title, "workbook": str(TESTCASE_WORKBOOK)}
+
+
+def testcase_conclusion_for_nodeid(nodeid, status):
+    testcase_id = testcase_id_for_nodeid(nodeid)
+    if not testcase_id:
+        return None
+
+    normalized_status = (status or "").upper()
+    if normalized_status == "PASS":
+        detail = _TESTCASE_PASS_CONCLUSIONS.get(testcase_id, "Kết quả thực tế phù hợp với kết quả mong đợi.")
+        return f"✅ PASS - {testcase_id}: {detail}"
+    if normalized_status == "FAIL":
+        detail = _TESTCASE_FAIL_CONCLUSIONS.get(testcase_id, "Kết quả thực tế không phù hợp với kết quả mong đợi.")
+        return f"❌ FAIL - {testcase_id}: {detail}"
+    if normalized_status == "SKIP":
+        return f"⏭️ SKIP - {testcase_id}: Không đủ điều kiện dữ liệu/giao diện để thực thi test case này."
+    return f"ℹ️ {normalized_status} - {testcase_id}: Đã ghi nhận trạng thái kiểm thử."

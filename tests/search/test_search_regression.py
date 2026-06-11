@@ -18,6 +18,7 @@ from pages.catalog_page import (
     NO_RESULTS_TEXT,
 )
 from utils.parsers import is_sorted
+from utils.testcase_ids import testcase_id_for_nodeid
 
 pytestmark = pytest.mark.regression
 
@@ -40,8 +41,10 @@ def _save_very_long_progress(driver, test_name: str, iteration: int, actual_leng
         screenshots_dir = project_root / "reports" / "artifacts" / run_id / "screenshots"
         screenshots_dir.mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
+        testcase_id = testcase_id_for_nodeid(f"tests/search/test_search_regression.py::{test_name}")
+        name_prefix = f"{testcase_id}_" if testcase_id else ""
         screenshot_path = screenshots_dir / (
-            f"{test_name}_progress_paste_{iteration:02d}_chars_{actual_length}_{timestamp}.png"
+            f"{name_prefix}{test_name}_progress_paste_{iteration:02d}_chars_{actual_length}_{timestamp}.png"
         )
         driver.execute_script(
             """

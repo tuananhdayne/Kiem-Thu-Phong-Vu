@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from utils.artifacts import capture_screenshot
 from utils.config_loader import load_config
 from utils.logging_utils import configure_logging
-from utils.testcase_ids import testcase_meta_for_nodeid
+from utils.testcase_ids import testcase_conclusion_for_nodeid, testcase_id_for_nodeid, testcase_meta_for_nodeid
 
 # Use a consistent logger name across the project
 LOGGER = logging.getLogger("phongvu-tests-selenium")
@@ -28,6 +28,14 @@ _SELENIUM_CHROMEDRIVER_PIDS = set()
 def _console_safe(value):
     encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
     return str(value).encode(encoding, errors="replace").decode(encoding, errors="replace")
+
+
+def _safe_artifact_stem(node, suffix):
+    testcase_id = testcase_id_for_nodeid(node.nodeid)
+    raw_name = f"{node.name}_{suffix}"
+    if testcase_id:
+        raw_name = f"{testcase_id}_{raw_name}"
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", raw_name).strip("_") or "artifact"
 
 
 def _kill_windows_process_tree(pid):
@@ -119,6 +127,22 @@ def pytest_runtest_setup(item):
 
 def pytest_runtest_teardown(item, nextitem):
     """Ghi log khi một test kết thúc."""
+    report = getattr(item, "rep_call", None)
+    if report is not None:
+        if report.passed:
+            status = "PASS"
+        elif report.failed:
+            status = "FAIL"
+        elif report.skipped:
+            status = "SKIP"
+        else:
+            status = "UNKNOWN"
+
+        conclusion = testcase_conclusion_for_nodeid(item.nodeid, status)
+        if conclusion:
+            safe_conclusion = _console_safe(conclusion)
+            LOGGER.info("TEST CASE CONCLUSION: %s", safe_conclusion)
+            print(f"\n=== TEST CASE CONCLUSION: {safe_conclusion} ===")
     LOGGER.info("END TEST: %s", item.name)
 
 
@@ -439,7 +463,7 @@ def driver(request):
             pages_dir = reports_dir / "artifacts" / run_id / "pages"
             pages_dir.mkdir(parents=True, exist_ok=True)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"{request.node.name}_{suffix}").strip("_")
+            safe_name = _safe_artifact_stem(request.node, suffix)
             file_path = pages_dir / f"{safe_name}_{timestamp}.html"
             file_path.write_text(browser_session.page_source, encoding="utf-8")
             LOGGER.info("Saved page source: %s", file_path)
@@ -457,7 +481,7 @@ def driver(request):
             logs_dir = reports_dir / "artifacts" / run_id / "console"
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"{request.node.name}_{suffix}").strip("_")
+            safe_name = _safe_artifact_stem(request.node, suffix)
             file_path = logs_dir / f"{safe_name}_{timestamp}_console.json"
             logs = []
             try:
@@ -491,7 +515,7 @@ def driver(request):
                     screenshots_dir = reports_dir / "artifacts" / run_id / "screenshots"
                     screenshots_dir.mkdir(parents=True, exist_ok=True)
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
-                    safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"{request.node.name}_failed").strip("_")
+                    safe_name = _safe_artifact_stem(request.node, "failed")
                     screenshot_path = screenshots_dir / f"{safe_name}_{timestamp}.png"
                     try:
                         browser_session.execute_script("window.scrollTo(0, 0);")
@@ -521,7 +545,7 @@ def driver(request):
                 screenshots_dir = reports_dir / "artifacts" / run_id / "screenshots"
                 screenshots_dir.mkdir(parents=True, exist_ok=True)
                 timestamp = time.strftime("%Y%m%d_%H%M%S")
-                safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"{request.node.name}_passed").strip("_")
+                safe_name = _safe_artifact_stem(request.node, "passed")
                 screenshot_path = screenshots_dir / f"{safe_name}_{timestamp}.png"
                 try:
                     browser_session.execute_script("window.scrollTo(0, 0);")
