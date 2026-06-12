@@ -1210,7 +1210,7 @@ def main() -> None:
             if not headless:
                 st.info("Chế độ Headful sẽ hiện Chrome trên màn hình và tự ép Workers = 1 để dễ quan sát, tránh mở nhiều tab/cửa sổ.")
             col_opts1, col_opts2 = st.columns(2)
-            workers = col_opts1.number_input("Số luồng song song (Workers)", min_value=1, max_value=8, value=4, help="Khuyên dùng 4 luồng. Quá nhiều luồng có thể gây nghẽn tài nguyên CPU/RAM hoặc rate-limit!")
+            workers = col_opts1.number_input("Số luồng song song (Workers)", min_value=1, max_value=8, value=3, help="Khuyên dùng 3 luồng để cân bằng tốc độ và độ ổn định. Quá nhiều luồng có thể gây nghẽn CPU/RAM hoặc khiến website tải chậm!")
             timeout = col_opts2.number_input("Timeout chờ (s)", min_value=3, max_value=120, value=10, help="Thời gian chờ tìm phần tử DOM. KHÔNG nên đặt dưới 5s!")
             reruns = st.number_input("Thử lại khi lỗi (Flaky Retries)", min_value=0, max_value=5, value=2, help="Tự động thử lại để khắc phục lỗi mạng hoặc tải trang chậm ngẫu nhiên.")
             

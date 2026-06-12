@@ -514,7 +514,7 @@ def search_with_keyword(driver, config, keyword, wait_for_results=True, timeout=
     log_test_evidence("SEARCH WAIT TIMEOUT", keyword=keyword_str, url=driver.current_url)
 
 
-def resolve_available_text(driver, candidates, timeout=10):
+def resolve_available_text(driver, candidates, timeout=20):
     """Resolve an available sort text from candidate labels."""
     end_time = time.time() + timeout
     available_texts = []
@@ -523,6 +523,13 @@ def resolve_available_text(driver, candidates, timeout=10):
         try:
             remaining = max(0.5, min(2, end_time - time.time()))
             sort_container = _find_sort_container(driver, timeout=remaining)
+            try:
+                driver.execute_script(
+                    "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
+                    sort_container,
+                )
+            except Exception:
+                pass
             elements = sort_container.find_elements(By.XPATH, ".//*[normalize-space()]")
             available_texts = []
             for element in elements:
@@ -665,6 +672,7 @@ def click_checkbox_by_text(driver, checkbox_text, timeout=8, desired_state=None)
 def apply_sort_option(driver, option_text, timeout=5):
     """Apply a visible sort option."""
     logger.info("Applying sort option: %s", option_text)
+    original_url = driver.current_url
     start_time = time.time()
     sort_container = None
     while time.time() - start_time < timeout:
@@ -712,5 +720,39 @@ def apply_sort_option(driver, option_text, timeout=5):
     except Exception:
         driver.execute_script("arguments[0].click();", option_node)
 
-    logger.info("Applied sort option: %s", option_text)
-    return option_node
+    normalized_option = _normalize_text(option_text)
+    expected_query_parts = []
+    if "gia tang dan" in normalized_option or "gia thap den cao" in normalized_option:
+        expected_query_parts = ["sort=SORT_BY_PRICE", "order=ASC"]
+    elif "gia giam dan" in normalized_option or "gia cao den thap" in normalized_option:
+        expected_query_parts = ["sort=SORT_BY_PRICE", "order=DESC"]
+    elif "khuyen mai" in normalized_option:
+        expected_query_parts = ["sort=SORT_BY_DISCOUNT_PERCENT", "order=DESC"]
+    elif "ban chay" in normalized_option:
+        expected_query_parts = ["sort=SORT_BY_TOP_SALE_QUANTITY_7_DAYS", "order=DESC"]
+
+    end_time = time.time() + max(3, timeout)
+    applied_url = original_url
+    while time.time() < end_time:
+        try:
+            applied_url = driver.current_url
+            if expected_query_parts:
+                if all(part.lower() in applied_url.lower() for part in expected_query_parts):
+                    logger.info("Applied sort option: %s | url=%s", option_text, applied_url)
+                    return option_node
+            elif applied_url != original_url:
+                logger.info("Applied sort option: %s | url=%s", option_text, applied_url)
+                return option_node
+        except Exception:
+            pass
+        time.sleep(0.2)
+
+    if not expected_query_parts:
+        # Some sort controls update the listing without changing the URL.
+        logger.info("Applied sort option without URL confirmation: %s | url=%s", option_text, applied_url)
+        return option_node
+
+    raise AssertionError(
+        f"Sort option was clicked but not applied: '{option_text}'. "
+        f"Expected URL parts: {expected_query_parts}. Original URL: {original_url}. Current URL: {applied_url}"
+    )

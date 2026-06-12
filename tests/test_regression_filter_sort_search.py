@@ -1,5 +1,3 @@
-import time
-
 import pytest
 
 from selenium.webdriver.common.by import By
@@ -26,7 +24,14 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
         resolved = sort_option
 
     apply_sort_option(driver, resolved)
-    wait.until(lambda d: "sort=" in d.current_url.lower() or "order=" in d.current_url.lower())
+    wait.until(
+        lambda d: (
+            "sort=sort_by_price" in d.current_url.lower()
+            and "order=asc" in d.current_url.lower()
+            and len(prices := extract_latest_prices(d, test_config, limit=5)) >= 3
+            and is_sorted(prices, ascending=True)
+        )
+    )
 
     prices_before = extract_latest_prices(driver, test_config, limit=5)
     log_test_evidence(
@@ -39,7 +44,14 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
 
     driver.refresh()
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[normalize-space()='Sắp xếp theo']")))
-    time.sleep(1)
+    wait.until(
+        lambda d: (
+            "sort=sort_by_price" in d.current_url.lower()
+            and "order=asc" in d.current_url.lower()
+            and len(prices := extract_latest_prices(d, test_config, limit=5)) >= 3
+            and is_sorted(prices, ascending=True)
+        )
+    )
 
     prices_after_reload = extract_latest_prices(driver, test_config, limit=5)
     log_test_evidence(
@@ -56,7 +68,14 @@ def test_preserve_sort_state_on_reload_and_navigation(driver, test_config):
     driver.get(previous_url)
 
     wait.until(EC.presence_of_element_located((By.XPATH, "//*[normalize-space()='Sắp xếp theo']")))
-    time.sleep(1)
+    wait.until(
+        lambda d: (
+            "sort=sort_by_price" in d.current_url.lower()
+            and "order=asc" in d.current_url.lower()
+            and len(prices := extract_latest_prices(d, test_config, limit=5)) >= 3
+            and is_sorted(prices, ascending=True)
+        )
+    )
 
     prices_after_nav = extract_latest_prices(driver, test_config, limit=5)
     log_test_evidence(

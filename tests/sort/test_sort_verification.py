@@ -47,7 +47,12 @@ def test_sort_price_orders(driver, test_config):
             time.sleep(0.4)
         except Exception:
             pass
-    WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3))
+    WebDriverWait(driver, 10).until(
+        lambda d: (
+            len(current := extract_latest_prices(d, test_config, limit=10)) >= 3
+            and is_sorted(current, ascending=True)
+        )
+    )
 
     prices = extract_latest_prices(driver, test_config, limit=10)
     names_asc = extract_product_names(driver, test_config, limit=10)
@@ -63,7 +68,13 @@ def test_sort_price_orders(driver, test_config):
         [sort_opts.get("price_desc"), str(sort_opts.get("price_desc", "")).lower(), "Gia giam dan"],
     )
     apply_sort_option(driver, candidate_desc)
-    WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3) != prices[:3])
+    WebDriverWait(driver, 10).until(
+        lambda d: (
+            len(current := extract_latest_prices(d, test_config, limit=10)) >= 3
+            and current[:3] != prices[:3]
+            and is_sorted(current, ascending=False)
+        )
+    )
 
     prices_desc = extract_latest_prices(driver, test_config, limit=10)
     names_desc = extract_product_names(driver, test_config, limit=10)
@@ -145,7 +156,12 @@ def test_sort_switching_between_sort_types_keeps_results_visible(driver, test_co
 
     candidate_asc = resolve_available_text(driver, [sort_opts.get("price_asc"), *sort_candidates])
     apply_sort_option(driver, candidate_asc)
-    WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3))
+    WebDriverWait(driver, 10).until(
+        lambda d: (
+            len(prices := extract_latest_prices(d, test_config, limit=10)) >= 3
+            and is_sorted(prices, ascending=True)
+        )
+    )
     prices_asc = extract_latest_prices(driver, test_config, limit=10)
     names_asc = extract_product_names(driver, test_config, limit=10)
     log_test_evidence(
@@ -163,7 +179,13 @@ def test_sort_switching_between_sort_types_keeps_results_visible(driver, test_co
         [sort_opts.get("price_desc"), str(sort_opts.get("price_desc", "")).lower(), "Gia giam dan"],
     )
     apply_sort_option(driver, candidate_desc)
-    WebDriverWait(driver, 8).until(lambda d: extract_latest_prices(d, test_config, limit=3) != prices_asc[:3])
+    WebDriverWait(driver, 10).until(
+        lambda d: (
+            len(prices := extract_latest_prices(d, test_config, limit=10)) >= 3
+            and prices[:3] != prices_asc[:3]
+            and is_sorted(prices, ascending=False)
+        )
+    )
     prices_desc = extract_latest_prices(driver, test_config, limit=10)
     names_desc = extract_product_names(driver, test_config, limit=10)
     log_test_evidence(
