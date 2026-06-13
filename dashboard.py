@@ -302,7 +302,19 @@ def _format_time_vn(iso_str: str) -> str:
 
 def _run_with_streaming(command: list[str], cwd: Path, placeholder) -> dict:
     started = datetime.now(_tz.utc).isoformat().replace("+00:00", "Z")
-    proc = Popen(command, cwd=str(cwd), stdout=PIPE, stderr=STDOUT, text=True, encoding="utf-8", errors="replace")
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
+    proc = Popen(
+        command,
+        cwd=str(cwd),
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+    )
     out_lines = []
     try:
         for line in proc.stdout:
@@ -459,6 +471,9 @@ def collect_pytest_nodeids() -> list[str]:
             "addopts=",
             "tests",
         ]
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["PYTHONUTF8"] = "1"
         proc = subprocess.run(
             cmd,
             cwd=str(PROJECT_ROOT),
@@ -467,6 +482,7 @@ def collect_pytest_nodeids() -> list[str]:
             encoding="utf-8",
             errors="replace",
             timeout=30,
+            env=env,
         )
         lines = []
         for line in (proc.stdout or "").splitlines():

@@ -16,10 +16,13 @@ EXPECTED_FAIL_NAMES = {"test_search_very_long_query"}
 
 
 def _run(cmd, env=None, timeout=None):
+    sub_env = env.copy() if env is not None else os.environ.copy()
+    sub_env["PYTHONIOENCODING"] = "utf-8"
+    sub_env["PYTHONUTF8"] = "1"
     return subprocess.run(
         cmd,
         cwd=str(PROJECT_ROOT),
-        env=env,
+        env=sub_env,
         text=True,
         encoding="utf-8",
         errors="replace",

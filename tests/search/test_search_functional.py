@@ -168,7 +168,7 @@ def test_search_load_more_preserves_keyword(driver, test_config):
     deadline = time.time() + 4.0
     while time.time() < deadline and (not names_before or control is None):
         if not names_before:
-            names_before = _extract_product_names_quick(driver, test_config, limit=8, timeout=0.4)
+            names_before = extract_product_names(driver, test_config, limit=100, timeout=0.5)
 
         if control is None:
             try:
@@ -194,17 +194,18 @@ def test_search_load_more_preserves_keyword(driver, test_config):
         time.sleep(0.1)
 
     assert names_before, "No results on first page to validate pagination/load-more"
-    _log_product_names("SEARCH LOAD MORE - BEFORE CLICK", names_before)
+    LOGGER.info("--- [SEARCH LOAD MORE - BEFORE CLICK] %d product(s) ---", len(names_before))
+    print(f"\n--- [SEARCH LOAD MORE - BEFORE CLICK] {len(names_before)} product(s) ---")
     if control is None:
         pytest.skip("No pagination or load-more control detected on search results page")
 
     # Click the control (scroll into view first)
     _scroll_and_click(driver, control, control_type or "pagination/load-more control")
 
-    deadline = time.time() + 1.0
+    deadline = time.time() + 5.0
     new_names = []
     while time.time() < deadline:
-        new_names = extract_product_names(driver, test_config, limit=16)
+        new_names = extract_product_names(driver, test_config, limit=100)
         if new_names and (
             (control_type == "pagination" and new_names != names_before)
             or (control_type == "load_more" and len(new_names) > len(names_before))
@@ -213,9 +214,23 @@ def test_search_load_more_preserves_keyword(driver, test_config):
         time.sleep(0.3)
 
     assert new_names, "No results after clicking pagination/load-more control"
-    _log_product_names("SEARCH LOAD MORE - AFTER CLICK", new_names)
+    LOGGER.info("--- [SEARCH LOAD MORE - AFTER CLICK] %d product(s) ---", len(new_names))
+    print(f"\n--- [SEARCH LOAD MORE - AFTER CLICK] {len(new_names)} product(s) ---")
 
-    relevant_after_click = any(_normalize(keyword) in _normalize(name) for name in new_names)
+    # Determine newly loaded products based on control type
+    if control_type == "load_more":
+        newly_loaded = new_names[len(names_before):]
+        LOGGER.info("Count of new products loaded: %d", len(newly_loaded))
+        _log_product_names("NEW PRODUCTS LOADED AFTER CLICK", newly_loaded)
+        assert len(newly_loaded) > 0, f"Expected more than {len(names_before)} products after clicking 'Xem thêm', but only got {len(new_names)} total."
+    else:
+        newly_loaded = new_names
+        LOGGER.info("Count of products on next page: %d", len(newly_loaded))
+        _log_product_names("NEW PAGE PRODUCTS", newly_loaded)
+        assert new_names != names_before, "Expected products on the new page to be different from the first page."
+        assert len(newly_loaded) > 0, "No products found on the new page."
+
+    relevant_newly_loaded = any(_normalize(keyword) in _normalize(name) for name in newly_loaded)
     url_or_no_result_keeps_search_state = (
         "tim-kiem" in driver.current_url.lower()
         or "search" in driver.current_url.lower()
@@ -223,8 +238,8 @@ def test_search_load_more_preserves_keyword(driver, test_config):
         or "q=" in driver.current_url.lower()
         or NO_RESULTS_TEXT in driver.find_element(By.TAG_NAME, "body").text.lower()
     )
-    assert relevant_after_click or url_or_no_result_keeps_search_state, (
-        f"Load-more did not preserve search context. url={driver.current_url}, products={new_names}"
+    assert relevant_newly_loaded or url_or_no_result_keeps_search_state, (
+        f"Newly loaded products did not preserve search context. url={driver.current_url}, newly_loaded={newly_loaded}"
     )
 
 
@@ -234,10 +249,9 @@ def test_search_deeplink_query_loads_correct_results(driver, test_config):
     keyword = test_config["test_data"].get("search_keyword", "Logitech")
     base = test_config["base_url"].rstrip("/")
     patterns = [
-        f"{base}/tim-kiem?q={keyword}",
+        f"{base}/search?query={keyword}",
         f"{base}/search?q={keyword}",
         f"{base}/?q={keyword}",
-        f"{base}/tim-kiem/{keyword}",
     ]
 
     loaded = False

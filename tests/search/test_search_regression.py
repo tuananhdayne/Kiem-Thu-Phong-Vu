@@ -25,7 +25,7 @@ pytestmark = pytest.mark.regression
 
 def _safe_str(text: str) -> str:
     nfkd_form = unicodedata.normalize('NFKD', str(text or ""))
-    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).replace("Ä‘", "d").replace("Ä", "D")
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).replace("đ", "d").replace("Đ", "D")
 
 
 def _short_error(text: str, limit: int = 500) -> str:
@@ -82,7 +82,7 @@ def _save_very_long_progress(driver, test_name: str, iteration: int, actual_leng
 
 
 def test_search_vietnamese_accent_and_no_accent(driver, test_config):
-    """XĂ¡c thá»±c viá»‡c tĂ¬m kiáº¿m tiáº¿ng Viá»‡t cĂ³ dáº¥u vĂ  khĂ´ng dáº¥u Ä‘á»u tráº£ vá» káº¿t quáº£ liĂªn quan."""
+    """Xác thực việc tìm kiếm tiếng Việt có dấu và không dấu đều trả về kết quả liên quan."""
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "\u0111i\u1ec7n tho\u1ea1i")
     with_accent = extract_product_names(driver, test_config, limit=8)
@@ -97,7 +97,7 @@ def test_search_vietnamese_accent_and_no_accent(driver, test_config):
 
 
 def test_search_empty_query(driver, test_config):
-    """XĂ¡c thá»±c há»‡ thá»‘ng khĂ´ng thá»±c hiá»‡n tĂ¬m kiáº¿m vĂ  khĂ´ng Ä‘á»•i URL khi Ă´ tĂ¬m kiáº¿m trá»‘ng hoáº·c chá»‰ chá»©a khoáº£ng tráº¯ng."""
+    """Xác thực hệ thống không thực hiện tìm kiếm và không đổi URL khi ô tìm kiếm trống hoặc chỉ chứa khoảng trắng."""
     driver.get(test_config["base_url"])
     original_url = driver.current_url
 
@@ -329,7 +329,7 @@ def test_search_very_long_query(driver, test_config):
     print(f"PASS: Trinh duyet hoat dong tot sau seed {chunk_size:,} ky tu va {max_iterations} lan Ctrl+V.")
 
 def _deprecated_repeated_long_input_check(driver, test_config):
-    """Destructive: Kiá»ƒm tra viá»‡c nháº­p liĂªn tá»¥c cĂ¡c chuá»—i vÄƒn báº£n dĂ i vĂ o Ă´ tĂ¬m kiáº¿m khĂ´ng gĂ¢y treo hoáº·c xĂ³a tráº¯ng input."""
+    """Destructive: Kiểm tra việc nhập liên tục các chuỗi văn bản dài vào ô tìm kiếm không gây treo hoặc xóa trắng input."""
     driver.get(test_config["base_url"])
     chunk_size = int(os.getenv("REPEATED_LONG_INPUT_CHUNK_SIZE", "80000"))
     iterations = int(os.getenv("REPEATED_LONG_INPUT_ITERATIONS", "15"))
@@ -374,7 +374,7 @@ def _deprecated_repeated_long_input_check(driver, test_config):
 
 
 def test_search_results_are_scoped_to_main_results_container(driver, test_config):
-    """XĂ¡c thá»±c danh sĂ¡ch sáº£n pháº©m tĂ¬m Ä‘Æ°á»£c náº±m gá»n trong khu vá»±c káº¿t quáº£ chĂ­nh, khĂ´ng bá»‹ trĂ n ra ngoĂ i."""
+    """Xác thực danh sách sản phẩm tìm được nằm gọn trong khu vực kết quả chính, không bị tràn ra ngoài."""
     driver.get(test_config["base_url"])
     keyword = test_config["test_data"].get("search_keyword", "Logitech")
     search_with_keyword(driver, test_config, keyword)
@@ -400,7 +400,7 @@ def test_search_results_are_scoped_to_main_results_container(driver, test_config
 
 
 def test_search_change_keyword_updates_results(driver, test_config):
-    """XĂ¡c thá»±c viá»‡c Ä‘á»•i tá»« khĂ³a tĂ¬m kiáº¿m (tá»« Logitech sang Samsung) sáº½ cáº­p nháº­t danh sĂ¡ch sáº£n pháº©m má»›i tÆ°Æ¡ng á»©ng."""
+    """Xác thực việc đổi từ khóa tìm kiếm (từ Logitech sang Samsung) sẽ cập nhật danh sách sản phẩm mới tương ứng."""
     driver.get(test_config["base_url"])
 
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
@@ -430,7 +430,7 @@ def test_search_change_keyword_updates_results(driver, test_config):
 
 
 def test_search_then_sort_price_keeps_relevant_sorted_results(driver, test_config):
-    """XĂ¡c thá»±c viá»‡c sáº¯p xáº¿p giĂ¡ sáº£n pháº©m váº«n hoáº¡t Ä‘á»™ng bĂ¬nh thÆ°á»ng trĂªn trang káº¿t quáº£ tĂ¬m kiáº¿m."""
+    """Xác thực việc sắp xếp giá sản phẩm vẫn hoạt động bình thường trên trang kết quả tìm kiếm."""
     driver.get(test_config["base_url"])
     search_with_keyword(driver, test_config, "Logitech", timeout=8)
 

@@ -172,13 +172,13 @@ def _create_isolated_chrome_driver():
     chrome_options.add_argument("--disable-sync")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--blink-settings=imagesEnabled=false")
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
     block_images = os.getenv("SELENIUM_BLOCK_IMAGES", "1")
     if str(block_images).lower() in ("0", "false", "no", "off"):
         prefs = {"profile.managed_default_content_settings.images": 1}
     else:
+        chrome_options.add_argument("--blink-settings=imagesEnabled=false")
         prefs = {"profile.managed_default_content_settings.images": 2}
     chrome_options.add_experimental_option("prefs", prefs)
 
@@ -304,7 +304,6 @@ def browser_session():
     chrome_options.add_argument("--disable-sync")
     chrome_options.add_argument("--disable-popup-blocking")
     chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--blink-settings=imagesEnabled=false")
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
     # Vô hiệu hóa tải ảnh để tăng tốc khi chạy Selenium Chrome.
@@ -316,8 +315,10 @@ def browser_session():
         if str(block_images).lower() in ("0", "false", "no", "off"):
             prefs = {"profile.managed_default_content_settings.images": 1}
         else:
+            chrome_options.add_argument("--blink-settings=imagesEnabled=false")
             prefs = {"profile.managed_default_content_settings.images": 2}
     except Exception:
+        chrome_options.add_argument("--blink-settings=imagesEnabled=false")
         prefs = {"profile.managed_default_content_settings.images": 2}
     chrome_options.add_experimental_option("prefs", prefs)
 

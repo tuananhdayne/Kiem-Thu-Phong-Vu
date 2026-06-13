@@ -673,52 +673,75 @@ def apply_sort_option(driver, option_text, timeout=5):
     """Apply a visible sort option."""
     logger.info("Applying sort option: %s", option_text)
     original_url = driver.current_url
-    start_time = time.time()
-    sort_container = None
-    while time.time() - start_time < timeout:
-        try:
-            sort_container = _find_sort_container(driver)
-            if sort_container.is_displayed():
-                break
-        except Exception:
-            pass
-        time.sleep(0.25)
-
-    if not sort_container:
-        raise Exception("Could not find sort container")
-
+    requested_text = _normalize_text(option_text)
+    click_deadline = time.time() + max(3, timeout)
     option_node = None
-    nodes = sort_container.find_elements(By.XPATH, ".//*[normalize-space()]")
+    available = []
+    last_click_error = None
 
-    for node in nodes:
+    while time.time() < click_deadline:
         try:
-            if node.is_displayed() and _normalize_text(node.text) == _normalize_text(option_text):
-                option_node = node
-                break
-        except Exception:
-            pass
+            sort_container = _find_sort_container(driver, timeout=1)
+            nodes = sort_container.find_elements(By.XPATH, ".//*[normalize-space()]")
+            available = []
+            option_node = None
 
-    if not option_node:
-        for node in nodes:
+            for node in nodes:
+                try:
+                    node_text_raw = node.text.strip()
+                    if node_text_raw:
+                        available.append(node_text_raw)
+                    node_text = _normalize_text(node_text_raw)
+                    if node.is_displayed() and node_text == requested_text:
+                        option_node = node
+                        break
+                except StaleElementReferenceException:
+                    continue
+
+            if not option_node:
+                for node in nodes:
+                    try:
+                        node_text = _normalize_text(node.text)
+                        if node.is_displayed() and (requested_text in node_text or node_text in requested_text):
+                            option_node = node
+                            break
+                    except StaleElementReferenceException:
+                        continue
+
+            if not option_node:
+                time.sleep(0.2)
+                continue
+
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", option_node)
+            time.sleep(0.15)
             try:
-                node_text = _normalize_text(node.text)
-                requested_text = _normalize_text(option_text)
-                if node.is_displayed() and (requested_text in node_text or node_text in requested_text):
-                    option_node = node
-                    break
-            except Exception:
-                pass
-
-    if not option_node:
-        available = [node.text.strip() for node in nodes if node.text.strip()]
-        raise AssertionError(f"Sort option not found: {option_text}. Available: {available}")
-
-    try:
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", option_node)
-        time.sleep(0.2)
-        option_node.click()
-    except Exception:
-        driver.execute_script("arguments[0].click();", option_node)
+                option_node.click()
+            except StaleElementReferenceException as exc:
+                last_click_error = exc
+                logger.info("Sort DOM changed before click; locating option again: %s", option_text)
+                time.sleep(0.2)
+                continue
+            except Exception as exc:
+                last_click_error = exc
+                try:
+                    driver.execute_script("arguments[0].click();", option_node)
+                except StaleElementReferenceException as stale_exc:
+                    last_click_error = stale_exc
+                    logger.info("Sort DOM changed during JavaScript click; locating option again: %s", option_text)
+                    time.sleep(0.2)
+                    continue
+            break
+        except StaleElementReferenceException as exc:
+            last_click_error = exc
+            time.sleep(0.2)
+        except Exception as exc:
+            last_click_error = exc
+            time.sleep(0.2)
+    else:
+        raise AssertionError(
+            f"Sort option could not be clicked: '{option_text}'. "
+            f"Available: {available}. Last error: {last_click_error}"
+        )
 
     normalized_option = _normalize_text(option_text)
     expected_query_parts = []
